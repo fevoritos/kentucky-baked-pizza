@@ -1,8 +1,15 @@
-@import "tailwindcss";
-
 :root {
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+    --font: "Open Sans", sans-serif;
+    --primary-color: #fe724c;
+    --primary-hover-color: #df6442;
+    --text-color: #000000;
+    --text-secondary-color: #5b5b5e;
+    --white-color: #ffffff;
+    --separator-color: #d4d6e0;
+    --placeholder-color: #9AA0B4;
+}
+
+body {
+    font-family: "Open Sans", sans-serif;
+    margin: 0;
 }
