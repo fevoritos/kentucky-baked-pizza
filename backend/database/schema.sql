@@ -108,3 +108,70 @@ CREATE TRIGGER update_order_updated_at
 CREATE TRIGGER update_cart_updated_at 
     BEFORE UPDATE ON cart 
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- Insert ingredients
+INSERT INTO ingredient (name) VALUES 
+    ('салями'),
+    ('руккола'),
+    ('помидоры'),
+    ('оливки'),
+    ('острый перец'),
+    ('лепёшка'),
+    ('фарш'),
+    ('острый соус'),
+    ('грибы'),
+    ('картофель'),
+    ('сыр'),
+    ('перец'),
+    ('курица'),
+    ('соус Цезарь'),
+    ('огурец'),
+    ('орехи')
+ON CONFLICT (name) DO NOTHING;
+
+-- Insert products
+INSERT INTO product (id, name, price, image, rating) VALUES 
+    (1, 'Наслаждение', 300.00, 'https://cdn-bucket.hb.ru-msk.vkcs.cloud/purple-images/demo/food/food1.png', 4.7),
+    (2, 'Такос', 280.00, 'https://cdn-bucket.hb.ru-msk.vkcs.cloud/purple-images/demo/food/food2.png', 4.8),
+    (3, 'Аццки острая', 320.00, 'https://cdn-bucket.hb.ru-msk.vkcs.cloud/purple-images/demo/food/food3.png', 4.9),
+    (4, 'Жаркое с сыром', 290.00, 'https://cdn-bucket.hb.ru-msk.vkcs.cloud/purple-images/demo/food/food4.png', 4.4),
+    (5, 'Цезарь с курицей', 290.00, 'https://cdn-bucket.hb.ru-msk.vkcs.cloud/purple-images/demo/food/food5.png', 4.8),
+    (6, 'Зелёный салат', 290.00, 'https://cdn-bucket.hb.ru-msk.vkcs.cloud/purple-images/demo/food/food6.png', 4.5)
+ON CONFLICT (id) DO NOTHING;
+
+DELETE FROM product_ingredient;
+
+INSERT INTO product_ingredient (product_id, ingredient_id) VALUES
+    -- Наслаждение (id: 1)
+    (1, (SELECT id FROM ingredient WHERE name = 'салями')),
+    (1, (SELECT id FROM ingredient WHERE name = 'руккола')),
+    (1, (SELECT id FROM ingredient WHERE name = 'помидоры')),
+    (1, (SELECT id FROM ingredient WHERE name = 'оливки')),
+    
+    -- Такос (id: 2)
+    (2, (SELECT id FROM ingredient WHERE name = 'острый перец')),
+    (2, (SELECT id FROM ingredient WHERE name = 'лепёшка')),
+    (2, (SELECT id FROM ingredient WHERE name = 'фарш')),
+    
+    -- Аццки острая (id: 3)
+    (3, (SELECT id FROM ingredient WHERE name = 'острый соус')),
+    (3, (SELECT id FROM ingredient WHERE name = 'грибы')),
+    (3, (SELECT id FROM ingredient WHERE name = 'помидоры')),
+    (3, (SELECT id FROM ingredient WHERE name = 'оливки')),
+    
+    -- Жаркое с сыром (id: 4)
+    (4, (SELECT id FROM ingredient WHERE name = 'картофель')),
+    (4, (SELECT id FROM ingredient WHERE name = 'сыр')),
+    (4, (SELECT id FROM ingredient WHERE name = 'перец')),
+    (4, (SELECT id FROM ingredient WHERE name = 'фарш')),
+    
+    -- Цезарь с курицей (id: 5)
+    (5, (SELECT id FROM ingredient WHERE name = 'курица')),
+    (5, (SELECT id FROM ingredient WHERE name = 'сыр')),
+    (5, (SELECT id FROM ingredient WHERE name = 'соус Цезарь')),
+    (5, (SELECT id FROM ingredient WHERE name = 'помидоры')),
+    
+    -- Зелёный салат (id: 6)
+    (6, (SELECT id FROM ingredient WHERE name = 'огурец')),
+    (6, (SELECT id FROM ingredient WHERE name = 'орехи')),
+    (6, (SELECT id FROM ingredient WHERE name = 'перец'));

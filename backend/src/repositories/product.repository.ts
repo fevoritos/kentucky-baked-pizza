@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { BaseRepository } from './base.repository';
 import { DatabaseService } from '../database/database.service';
-import { Product, ProductWithIngredients, Ingredient } from '../types/database.types';
+import { Product } from '../types/database.types';
 
 @Injectable()
 export class ProductRepository extends BaseRepository<Product> {
@@ -76,37 +76,6 @@ export class ProductRepository extends BaseRepository<Product> {
   }
 
   /**
-   * Find product with ingredients
-   */
-  async findByIdWithIngredients(id: number): Promise<ProductWithIngredients | null> {
-    const productQuery = `SELECT * FROM product WHERE id = $1`;
-    const productResult = await this.databaseService.query(productQuery, [id]);
-
-    if (productResult.rows.length === 0) return null;
-
-    const product = this.mapRowToEntity(productResult.rows[0] as Record<string, any>);
-
-    const ingredientsQuery = `
-      SELECT i.*
-      FROM ingredient i
-      JOIN product_ingredient pi ON i.id = pi.ingredient_id
-      WHERE pi.product_id = $1
-      ORDER BY i.name
-    `;
-    const ingredientsResult = await this.databaseService.query(ingredientsQuery, [id]);
-
-    const ingredients: Ingredient[] = ingredientsResult.rows.map((row: Record<string, any>) => ({
-      id: Number(row.id),
-      name: String(row.name),
-    }));
-
-    return {
-      ...product,
-      ingredients,
-    };
-  }
-
-  /**
    * Add ingredient to product
    */
   async addIngredient(productId: number, ingredientId: number): Promise<boolean> {
@@ -142,5 +111,135 @@ export class ProductRepository extends BaseRepository<Product> {
     `;
     const result = await this.databaseService.query(query, [rating, id]);
     return result.rowCount > 0;
+  }
+
+  /**
+   * Find all products with ingredients
+   */
+  async findAllWithIngredients(): Promise<any[]> {
+    const query = `
+      SELECT 
+        p.id,
+        p.name,
+        p.price,
+        p.image,
+        p.rating,
+        COALESCE(
+          JSON_AGG(i.name ORDER BY i.name) FILTER (WHERE i.name IS NOT NULL),
+          '[]'::json
+        ) as ingredients
+      FROM product p
+      LEFT JOIN product_ingredient pi ON p.id = pi.product_id
+      LEFT JOIN ingredient i ON pi.ingredient_id = i.id
+      GROUP BY p.id, p.name, p.price, p.image, p.rating
+      ORDER BY p.id
+    `;
+    const result = await this.databaseService.query(query);
+
+    return result.rows.map((row: Record<string, any>) => ({
+      id: Number(row.id),
+      name: String(row.name),
+      price: Number(row.price),
+      image: String(row.image),
+      rating: Number(row.rating),
+      ingredients: row.ingredients || [],
+    }));
+  }
+
+  /**
+   * Find product by ID with ingredients
+   */
+  async findByIdWithIngredients(id: number): Promise<any> {
+    const query = `
+      SELECT 
+        p.id,
+        p.name,
+        p.price,
+        p.image,
+        p.rating,
+        COALESCE(
+          JSON_AGG(i.name ORDER BY i.name) FILTER (WHERE i.name IS NOT NULL),
+          '[]'::json
+        ) as ingredients
+      FROM product p
+      LEFT JOIN product_ingredient pi ON p.id = pi.product_id
+      LEFT JOIN ingredient i ON pi.ingredient_id = i.id
+      WHERE p.id = $1
+      GROUP BY p.id, p.name, p.price, p.image, p.rating
+    `;
+    const result = await this.databaseService.query(query, [id]);
+
+    if (result.rows.length === 0) return null;
+
+    const row = result.rows[0] as Record<string, any>;
+    return {
+      id: Number(row.id),
+      name: String(row.name),
+      price: Number(row.price),
+      image: String(row.image),
+      rating: Number(row.rating),
+      ingredients: row.ingredients || [],
+    };
+  }
+
+  /**
+   * Search products by name or ingredients
+   */
+  async searchProducts(searchTerm: string): Promise<any[]> {
+    const searchWords = searchTerm.split(/\s+/).filter((word) => word.length > 0);
+
+    if (searchWords.length === 0) {
+      return this.findAllWithIngredients();
+    }
+
+    const nameConditions = searchWords
+      .map((_, index) => `LOWER(p.name) LIKE LOWER($${index + 1})`)
+      .join(' AND ');
+
+    const ingredientConditions = searchWords
+      .map(
+        (_, index) =>
+          `EXISTS (
+        SELECT 1 
+        FROM product_ingredient pi2 
+        JOIN ingredient i2 ON pi2.ingredient_id = i2.id 
+        WHERE pi2.product_id = p.id 
+        AND LOWER(i2.name) LIKE LOWER($${index + 1})
+      )`,
+      )
+      .join(' AND ');
+
+    const query = `
+      SELECT 
+        p.id,
+        p.name,
+        p.price,
+        p.image,
+        p.rating,
+        COALESCE(
+          JSON_AGG(i.name ORDER BY i.name) FILTER (WHERE i.name IS NOT NULL),
+          '[]'::json
+        ) as ingredients
+      FROM product p
+      LEFT JOIN product_ingredient pi ON p.id = pi.product_id
+      LEFT JOIN ingredient i ON pi.ingredient_id = i.id
+      WHERE 
+        (${nameConditions}) 
+        OR (${ingredientConditions})
+      GROUP BY p.id, p.name, p.price, p.image, p.rating
+      ORDER BY p.name
+    `;
+
+    const params = searchWords.map((word) => `%${word}%`);
+    const result = await this.databaseService.query(query, params);
+
+    return result.rows.map((row: Record<string, any>) => ({
+      id: Number(row.id),
+      name: String(row.name),
+      price: Number(row.price),
+      image: String(row.image),
+      rating: Number(row.rating),
+      ingredients: row.ingredients || [],
+    }));
   }
 }

@@ -5,8 +5,14 @@ import Headling from '../../components/Headling/Headling';
 import { cartActions } from '../../store/cart.slice';
 import styles from './Cart.module.css';
 import type { IProduct } from '../../interfaces/product.interface';
-import { useDispatch, useSelector } from 'react-redux';
-import type { AppDispatch, RootState } from '../../store/store';
+import {
+  useDispatch,
+  // useSelector
+} from 'react-redux';
+import type {
+  AppDispatch,
+  // RootState
+} from '../../store/store';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { PREFIX } from '../../helpers/API';
@@ -16,7 +22,7 @@ const DELIVERY_FEE = 169;
 
 function CartReceipt({ items }: CartReceiptProps) {
   const [cartProducts, setCartProducts] = useState<IProduct[]>([]);
-  const jwt = useSelector((s: RootState) => s.user.jwt);
+  // const jwt = useSelector((s: RootState) => s.user.jwt);
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const count = items.reduce((acc, i) => (acc += i.count), 0);
@@ -41,17 +47,17 @@ function CartReceipt({ items }: CartReceiptProps) {
   };
 
   const checkout = async () => {
-    await axios.post(
-      `${PREFIX}/order`,
-      {
-        products: items,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${jwt}`,
-        },
-      },
-    );
+    // await axios.post(
+    //   `${PREFIX}/order`,
+    //   {
+    //     products: items,
+    //   },
+    //   {
+    //     headers: {
+    //       Authorization: `Bearer ${jwt}`,
+    //     },
+    //   },
+    // );
     dispatch(cartActions.clean());
     navigate('/success');
   };
