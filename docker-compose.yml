@@ -14,3 +14,10 @@ services:
       - ./backend/database/schema.sql:/docker-entrypoint-initdb.d/schema.sql
     networks:
       - kentucky-baked-pizza-network
+
+volumes:
+  postgres_data:
+
+networks:
+  kentucky-baked-pizza-network:
+    driver: bridge
