@@ -2,6 +2,7 @@ import { Injectable, ConflictException, UnauthorizedException } from '@nestjs/co
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import { UserRepository } from '../repositories/user.repository';
+import { RoleRepository } from '../repositories/role.repository';
 import { RegisterDto, LoginDto, AuthResponseDto } from './dto/auth.dto';
 import { User } from '../types/database.types';
 
@@ -9,6 +10,7 @@ import { User } from '../types/database.types';
 export class AuthService {
   constructor(
     private readonly userRepository: UserRepository,
+    private readonly roleRepository: RoleRepository,
     private readonly jwtService: JwtService,
   ) {}
 
@@ -28,6 +30,12 @@ export class AuthService {
     const saltRounds = 10;
     const passwordHash = await bcrypt.hash(password, saltRounds);
 
+    // Get customer role (id = 2)
+    const customerRole = await this.roleRepository.findByName('customer');
+    if (!customerRole) {
+      throw new Error('Customer role not found');
+    }
+
     // Create user
     const user = await this.userRepository.create({
       email,
@@ -35,11 +43,15 @@ export class AuthService {
       name,
       address: address || '',
       phone: phone || '',
-      role: 'customer', // Default role
+      role: customerRole.id, // Default role id
     });
 
-    // Generate JWT token
-    const payload = { sub: user.id, email: user.email, role: user.role };
+    // Get user with role details for response
+    const userWithRole = await this.userRepository.findByIdWithRole(user.id);
+    const roleName = userWithRole?.roleDetails.name || 'customer';
+
+    // Generate JWT token (store role name in JWT for convenience)
+    const payload = { sub: user.id, email: user.email, role: roleName };
     const access_token = this.jwtService.sign(payload);
 
     return {
@@ -48,7 +60,7 @@ export class AuthService {
         id: user.id,
         email: user.email,
         name: user.name,
-        role: user.role,
+        role: roleName,
       },
     };
   }
@@ -71,8 +83,12 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    // Generate JWT token
-    const payload = { sub: user.id, email: user.email, role: user.role };
+    // Get user with role details for response
+    const userWithRole = await this.userRepository.findByIdWithRole(user.id);
+    const roleName = userWithRole?.roleDetails.name || 'customer';
+
+    // Generate JWT token (store role name in JWT for convenience)
+    const payload = { sub: user.id, email: user.email, role: roleName };
     const access_token = this.jwtService.sign(payload);
 
     return {
@@ -81,7 +97,7 @@ export class AuthService {
         id: user.id,
         email: user.email,
         name: user.name,
-        role: user.role,
+        role: roleName,
       },
     };
   }

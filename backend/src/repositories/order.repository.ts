@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { BaseRepository } from './base.repository';
 import { DatabaseService } from '../database/database.service';
-import { Order, OrderWithItems, OrderItemWithProduct } from '../types/database.types';
+import { Order, OrderWithItems, OrderItemWithDish } from '../types/database.types';
 
 @Injectable()
 export class OrderRepository extends BaseRepository<Order> {
@@ -21,12 +21,16 @@ export class OrderRepository extends BaseRepository<Order> {
     return {
       id: Number(row.id),
       userId: Number(row.user_id),
+      status: Number(row.status),
+      createdAt: row.created_at ? new Date(row.created_at) : undefined,
+      updatedAt: row.updated_at ? new Date(row.updated_at) : undefined,
     };
   }
 
   protected mapEntityToRow(entity: Partial<Order>): Record<string, any> {
     const row: Record<string, any> = {};
     if (entity.userId !== undefined) row.user_id = entity.userId;
+    if (entity.status !== undefined) row.status = entity.status;
     return row;
   }
 
@@ -55,24 +59,25 @@ export class OrderRepository extends BaseRepository<Order> {
 
     // Get order items
     const itemsQuery = `
-      SELECT oi.*, p.name as product_name, p.price as product_price, p.image as product_image, p.rating as product_rating
+      SELECT oi.*, d.name as dish_name, d.price as dish_price, d.image as dish_image, d.rating as dish_rating
       FROM order_item oi
-      JOIN product p ON oi.product_id = p.id
+      JOIN dish d ON oi.dish_id = d.id
       WHERE oi.order_id = $1
-      ORDER BY p.name
+      ORDER BY d.name
     `;
     const itemsResult = await this.databaseService.query(itemsQuery, [id]);
 
-    const items: OrderItemWithProduct[] = itemsResult.rows.map((row) => ({
+    const items: OrderItemWithDish[] = itemsResult.rows.map((row) => ({
       orderId: row.order_id,
-      productId: row.product_id,
-      count: row.count,
-      product: {
-        id: row.product_id,
-        name: row.product_name,
-        price: parseFloat(row.product_price),
-        image: row.product_image,
-        rating: parseFloat(row.product_rating),
+      dishId: row.dish_id,
+      quantity: Number(row.quantity),
+      price: parseFloat(row.price),
+      dish: {
+        id: row.dish_id,
+        name: row.dish_name,
+        price: parseFloat(row.dish_price),
+        image: row.dish_image,
+        rating: parseFloat(row.dish_rating),
       },
     }));
 
@@ -80,8 +85,9 @@ export class OrderRepository extends BaseRepository<Order> {
       ...order,
       items: items.map((item) => ({
         orderId: item.orderId,
-        productId: item.productId,
-        count: item.count,
+        dishId: item.dishId,
+        quantity: item.quantity,
+        price: item.price,
       })),
       user: {
         id: user.id,
@@ -90,7 +96,7 @@ export class OrderRepository extends BaseRepository<Order> {
         name: user.name,
         address: user.address,
         phone: user.phone,
-        role: user.role,
+        role: Number(user.role),
       },
     };
   }
@@ -100,21 +106,31 @@ export class OrderRepository extends BaseRepository<Order> {
    */
   async createWithItems(
     userId: number,
-    items: Array<{ productId: number; count: number }>,
+    items: Array<{ dishId: number; quantity: number }>,
+    statusId: number = 1, // Default to 'pending'
   ): Promise<OrderWithItems> {
     return await this.databaseService.transaction(async (client) => {
+      // Get dish prices
+      const dishIds = items.map((item) => item.dishId);
+      const dishQuery = `SELECT id, price FROM dish WHERE id = ANY($1::int[])`;
+      const dishResult = await client.query(dishQuery, [dishIds]);
+      const dishPrices = new Map(
+        dishResult.rows.map((row: any) => [Number(row.id), parseFloat(row.price)]),
+      );
+
       // Create order
-      const orderQuery = `INSERT INTO "order" (user_id) VALUES ($1) RETURNING *`;
-      const orderResult = await client.query(orderQuery, [userId]);
+      const orderQuery = `INSERT INTO "order" (user_id, status) VALUES ($1, $2) RETURNING *`;
+      const orderResult = await client.query(orderQuery, [userId, statusId]);
       const order = this.mapRowToEntity(orderResult.rows[0]);
 
       // Create order items
       for (const item of items) {
+        const price = dishPrices.get(item.dishId) || 0;
         const itemQuery = `
-          INSERT INTO order_item (order_id, product_id, count)
-          VALUES ($1, $2, $3)
+          INSERT INTO order_item (order_id, dish_id, quantity, price)
+          VALUES ($1, $2, $3, $4)
         `;
-        await client.query(itemQuery, [order.id, item.productId, item.count]);
+        await client.query(itemQuery, [order.id, item.dishId, item.quantity, price]);
       }
 
       // Return order with items
@@ -129,39 +145,45 @@ export class OrderRepository extends BaseRepository<Order> {
   /**
    * Add item to order
    */
-  async addItem(orderId: number, productId: number, count: number): Promise<boolean> {
+  async addItem(orderId: number, dishId: number, quantity: number): Promise<boolean> {
+    // Get dish price
+    const dishQuery = `SELECT price FROM dish WHERE id = $1`;
+    const dishResult = await this.databaseService.query(dishQuery, [dishId]);
+    if (dishResult.rows.length === 0) return false;
+    const price = parseFloat(dishResult.rows[0].price);
+
     const query = `
-      INSERT INTO order_item (order_id, product_id, count)
-      VALUES ($1, $2, $3)
-      ON CONFLICT (order_id, product_id)
-      DO UPDATE SET count = order_item.count + $3
+      INSERT INTO order_item (order_id, dish_id, quantity, price)
+      VALUES ($1, $2, $3, $4)
+      ON CONFLICT (order_id, dish_id)
+      DO UPDATE SET quantity = order_item.quantity + $3
     `;
-    const result = await this.databaseService.query(query, [orderId, productId, count]);
+    const result = await this.databaseService.query(query, [orderId, dishId, quantity, price]);
     return result.rowCount > 0;
   }
 
   /**
    * Remove item from order
    */
-  async removeItem(orderId: number, productId: number): Promise<boolean> {
+  async removeItem(orderId: number, dishId: number): Promise<boolean> {
     const query = `
       DELETE FROM order_item
-      WHERE order_id = $1 AND product_id = $2
+      WHERE order_id = $1 AND dish_id = $2
     `;
-    const result = await this.databaseService.query(query, [orderId, productId]);
+    const result = await this.databaseService.query(query, [orderId, dishId]);
     return result.rowCount > 0;
   }
 
   /**
-   * Update item count in order
+   * Update item quantity in order
    */
-  async updateItemCount(orderId: number, productId: number, count: number): Promise<boolean> {
+  async updateItemQuantity(orderId: number, dishId: number, quantity: number): Promise<boolean> {
     const query = `
       UPDATE order_item
-      SET count = $1
-      WHERE order_id = $2 AND product_id = $3
+      SET quantity = $1
+      WHERE order_id = $2 AND dish_id = $3
     `;
-    const result = await this.databaseService.query(query, [count, orderId, productId]);
+    const result = await this.databaseService.query(query, [quantity, orderId, dishId]);
     return result.rowCount > 0;
   }
 
@@ -170,12 +192,24 @@ export class OrderRepository extends BaseRepository<Order> {
    */
   async getOrderTotal(orderId: number): Promise<number> {
     const query = `
-      SELECT SUM(p.price * oi.count) as total
+      SELECT SUM(oi.price * oi.quantity) as total
       FROM order_item oi
-      JOIN product p ON oi.product_id = p.id
       WHERE oi.order_id = $1
     `;
     const result = await this.databaseService.query(query, [orderId]);
     return parseFloat(result.rows[0]?.total || '0');
+  }
+
+  /**
+   * Update order status
+   */
+  async updateStatus(orderId: number, statusId: number): Promise<boolean> {
+    const query = `
+      UPDATE "order"
+      SET status = $1
+      WHERE id = $2
+    `;
+    const result = await this.databaseService.query(query, [statusId, orderId]);
+    return result.rowCount > 0;
   }
 }

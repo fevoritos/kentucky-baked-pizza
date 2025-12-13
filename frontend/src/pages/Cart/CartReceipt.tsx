@@ -37,7 +37,7 @@ function CartReceipt({ items }: CartReceiptProps) {
     .reduce((acc, i) => (acc += i), 0);
 
   const getItem = async (id: number) => {
-    const { data } = await axios.get<IProduct>(`${PREFIX}/products/${id}`);
+    const { data } = await axios.get<IProduct>(`${PREFIX}/dishes/${id}`);
     return data;
   };
 

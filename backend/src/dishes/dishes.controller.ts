@@ -5,7 +5,7 @@ import { DishRepository } from '../repositories/dish.repository';
 @ApiTags('Dishes')
 @Controller('dishes')
 export class DishesController {
-  constructor(private readonly dishRepository: DishRepository) {}
+  constructor(private readonly dishRepository: DishRepository) { }
 
   @Get()
   @ApiOperation({ summary: 'Получить все блюда или найти блюда по названию/ингредиентам' })

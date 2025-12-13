@@ -1,6 +1,7 @@
 // Database types based on the ERD schema
 
 export interface Role {
+  id: number;
   name: string;
 }
 
@@ -11,10 +12,10 @@ export interface User {
   name: string;
   address: string;
   phone: string;
-  role: string; // Foreign key to Role.name
+  role: number; // Foreign key to Role.id
 }
 
-export interface Product {
+export interface Dish {
   id: number;
   name: string;
   price: number;
@@ -27,20 +28,29 @@ export interface Ingredient {
   name: string;
 }
 
-export interface ProductIngredient {
-  productId: number;
+export interface DishIngredient {
+  dishId: number;
   ingredientId: number;
+}
+
+export interface Status {
+  id: number;
+  name: string;
 }
 
 export interface Order {
   id: number;
   userId: number;
+  status: number; // Foreign key to Status.id
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export interface OrderItem {
   orderId: number;
-  productId: number;
-  count: number;
+  dishId: number;
+  quantity: number;
+  price: number;
 }
 
 export interface Cart {
@@ -50,8 +60,16 @@ export interface Cart {
 
 export interface CartItem {
   cartId: number;
-  productId: number;
-  count: number;
+  dishId: number;
+  quantity: number;
+}
+
+export interface Feedback {
+  id: number;
+  value: number; // Rating from 1 to 5
+  userId: number;
+  dishId: number;
+  createdAt?: Date;
 }
 
 // Extended types with relations
@@ -59,7 +77,7 @@ export interface UserWithRole extends User {
   roleDetails: Role;
 }
 
-export interface ProductWithIngredients extends Product {
+export interface DishWithIngredients extends Dish {
   ingredients: Ingredient[];
 }
 
@@ -73,12 +91,20 @@ export interface CartWithItems extends Cart {
   user: User;
 }
 
-export interface OrderItemWithProduct extends OrderItem {
-  product: Product;
+export interface OrderItemWithDish extends OrderItem {
+  dish: Dish;
 }
 
-export interface CartItemWithProduct extends CartItem {
-  product: Product;
+export interface CartItemWithDish extends CartItem {
+  dish: Dish;
+}
+
+export interface FeedbackWithUser extends Feedback {
+  user: User;
+}
+
+export interface FeedbackWithDish extends Feedback {
+  dish: Dish;
 }
 
 // Query result types

@@ -43,7 +43,7 @@ const router = createBrowserRouter([
         element: <Product />,
         errorElement: <>Ошибка</>,
         loader: async ({ params }) => {
-          return axios.get(`${PREFIX}/products/${params.id}`);
+          return axios.get(`${PREFIX}/dishes/${params.id}`);
         },
       },
     ],

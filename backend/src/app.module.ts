@@ -4,11 +4,11 @@ import { AppService } from './app.service';
 import { DatabaseModule } from './database/database.module';
 import { RepositoriesModule } from './repositories/repositories.module';
 import { AuthModule } from './auth/auth.module';
-import { ProductsModule } from './products/products.module';
+import { DishesModule } from './dishes/dishes.module';
 
 @Module({
-  imports: [DatabaseModule, RepositoriesModule, AuthModule, ProductsModule],
+  imports: [DatabaseModule, RepositoriesModule, AuthModule, DishesModule],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule { }
+export class AppModule {}

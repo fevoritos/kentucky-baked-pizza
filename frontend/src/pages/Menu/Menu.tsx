@@ -21,7 +21,7 @@ export function Menu() {
   const getMenu = async (name?: string) => {
     try {
       setIsloading(true);
-      const { data } = await axios.get<IProduct[]>(`${PREFIX}/products`, {
+      const { data } = await axios.get<IProduct[]>(`${PREFIX}/dishes`, {
         params: {
           name,
         },

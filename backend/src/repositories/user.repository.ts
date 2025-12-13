@@ -25,7 +25,7 @@ export class UserRepository extends BaseRepository<User> {
       name: String(row.name),
       address: String(row.address),
       phone: String(row.phone),
-      role: String(row.role),
+      role: Number(row.role),
     };
   }
 
@@ -52,9 +52,9 @@ export class UserRepository extends BaseRepository<User> {
    */
   async findByIdWithRole(id: number): Promise<UserWithRole | null> {
     const query = `
-      SELECT u.*, r.name as role_name
+      SELECT u.*, r.id as role_id, r.name as role_name
       FROM "user" u
-      JOIN role r ON u.role = r.name
+      JOIN role r ON u.role = r.id
       WHERE u.id = $1
     `;
     const result = await this.databaseService.query(query, [id]);
@@ -69,8 +69,9 @@ export class UserRepository extends BaseRepository<User> {
       name: String(row.name),
       address: String(row.address),
       phone: String(row.phone),
-      role: String(row.role),
+      role: Number(row.role),
       roleDetails: {
+        id: Number(row.role_id),
         name: String(row.role_name),
       },
     };
@@ -81,9 +82,9 @@ export class UserRepository extends BaseRepository<User> {
    */
   async findAllWithRoles(): Promise<UserWithRole[]> {
     const query = `
-      SELECT u.*, r.name as role_name
+      SELECT u.*, r.id as role_id, r.name as role_name
       FROM "user" u
-      JOIN role r ON u.role = r.name
+      JOIN role r ON u.role = r.id
       ORDER BY u.id
     `;
     const result = await this.databaseService.query(query);
@@ -95,8 +96,9 @@ export class UserRepository extends BaseRepository<User> {
       name: String(row.name),
       address: String(row.address),
       phone: String(row.phone),
-      role: String(row.role),
+      role: Number(row.role),
       roleDetails: {
+        id: Number(row.role_id),
         name: String(row.role_name),
       },
     }));
