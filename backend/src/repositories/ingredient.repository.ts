@@ -30,9 +30,6 @@ export class IngredientRepository extends BaseRepository<Ingredient> {
     return row;
   }
 
-  /**
-   * Find ingredient by name (case insensitive)
-   */
   async findByName(name: string): Promise<Ingredient | null> {
     const query = `SELECT * FROM ingredient WHERE LOWER(name) = LOWER($1)`;
     const result = await this.databaseService.query(query, [name]);
@@ -41,9 +38,6 @@ export class IngredientRepository extends BaseRepository<Ingredient> {
       : null;
   }
 
-  /**
-   * Search ingredients by name
-   */
   async searchByName(name: string): Promise<Ingredient[]> {
     const query = `
       SELECT * FROM ingredient 

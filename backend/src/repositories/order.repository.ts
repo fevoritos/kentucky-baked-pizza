@@ -34,16 +34,10 @@ export class OrderRepository extends BaseRepository<Order> {
     return row;
   }
 
-  /**
-   * Find orders by user ID
-   */
   async findByUserId(userId: number): Promise<Order[]> {
     return this.findBy({ user_id: userId });
   }
 
-  /**
-   * Find order with items
-   */
   async findByIdWithItems(id: number): Promise<OrderWithItems | null> {
     const orderQuery = `SELECT * FROM "order" WHERE id = $1`;
     const orderResult = await this.databaseService.query(orderQuery, [id]);
@@ -52,12 +46,10 @@ export class OrderRepository extends BaseRepository<Order> {
 
     const order = this.mapRowToEntity(orderResult.rows[0]);
 
-    // Get user info
     const userQuery = `SELECT * FROM "user" WHERE id = $1`;
     const userResult = await this.databaseService.query(userQuery, [order.userId]);
     const user = userResult.rows[0];
 
-    // Get order items
     const itemsQuery = `
       SELECT oi.*, d.name as dish_name, d.price as dish_price, d.image as dish_image, d.rating as dish_rating
       FROM order_item oi
@@ -101,16 +93,12 @@ export class OrderRepository extends BaseRepository<Order> {
     };
   }
 
-  /**
-   * Create order with items
-   */
   async createWithItems(
     userId: number,
     items: Array<{ dishId: number; quantity: number }>,
-    statusId: number = 1, // Default to 'pending'
+    statusId: number = 1,
   ): Promise<OrderWithItems> {
     return await this.databaseService.transaction(async (client) => {
-      // Get dish prices
       const dishIds = items.map((item) => item.dishId);
       const dishQuery = `SELECT id, price FROM dish WHERE id = ANY($1::int[])`;
       const dishResult = await client.query(dishQuery, [dishIds]);
@@ -118,12 +106,10 @@ export class OrderRepository extends BaseRepository<Order> {
         dishResult.rows.map((row: any) => [Number(row.id), parseFloat(row.price)]),
       );
 
-      // Create order
       const orderQuery = `INSERT INTO "order" (user_id, status) VALUES ($1, $2) RETURNING *`;
       const orderResult = await client.query(orderQuery, [userId, statusId]);
       const order = this.mapRowToEntity(orderResult.rows[0]);
 
-      // Create order items
       for (const item of items) {
         const price = dishPrices.get(item.dishId) || 0;
         const itemQuery = `
@@ -133,7 +119,6 @@ export class OrderRepository extends BaseRepository<Order> {
         await client.query(itemQuery, [order.id, item.dishId, item.quantity, price]);
       }
 
-      // Return order with items
       const orderWithItems = await this.findByIdWithItems(order.id);
       if (!orderWithItems) {
         throw new Error('Failed to create order with items');
@@ -142,11 +127,7 @@ export class OrderRepository extends BaseRepository<Order> {
     });
   }
 
-  /**
-   * Add item to order
-   */
   async addItem(orderId: number, dishId: number, quantity: number): Promise<boolean> {
-    // Get dish price
     const dishQuery = `SELECT price FROM dish WHERE id = $1`;
     const dishResult = await this.databaseService.query(dishQuery, [dishId]);
     if (dishResult.rows.length === 0) return false;
@@ -162,9 +143,6 @@ export class OrderRepository extends BaseRepository<Order> {
     return result.rowCount > 0;
   }
 
-  /**
-   * Remove item from order
-   */
   async removeItem(orderId: number, dishId: number): Promise<boolean> {
     const query = `
       DELETE FROM order_item
@@ -174,9 +152,6 @@ export class OrderRepository extends BaseRepository<Order> {
     return result.rowCount > 0;
   }
 
-  /**
-   * Update item quantity in order
-   */
   async updateItemQuantity(orderId: number, dishId: number, quantity: number): Promise<boolean> {
     const query = `
       UPDATE order_item
@@ -187,9 +162,6 @@ export class OrderRepository extends BaseRepository<Order> {
     return result.rowCount > 0;
   }
 
-  /**
-   * Get order total
-   */
   async getOrderTotal(orderId: number): Promise<number> {
     const query = `
       SELECT SUM(oi.price * oi.quantity) as total
@@ -200,9 +172,6 @@ export class OrderRepository extends BaseRepository<Order> {
     return parseFloat(result.rows[0]?.total || '0');
   }
 
-  /**
-   * Update order status
-   */
   async updateStatus(orderId: number, statusId: number): Promise<boolean> {
     const query = `
       UPDATE "order"

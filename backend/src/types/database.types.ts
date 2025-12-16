@@ -1,5 +1,3 @@
-// Database types based on the ERD schema
-
 export interface Role {
   id: number;
   name: string;
@@ -12,7 +10,7 @@ export interface User {
   name: string;
   address: string;
   phone: string;
-  role: number; // Foreign key to Role.id
+  role: number;
 }
 
 export interface Dish {
@@ -41,7 +39,7 @@ export interface Status {
 export interface Order {
   id: number;
   userId: number;
-  status: number; // Foreign key to Status.id
+  status: number;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -66,13 +64,12 @@ export interface CartItem {
 
 export interface Feedback {
   id: number;
-  value: number; // Rating from 1 to 5
+  value: number;
   userId: number;
   dishId: number;
   createdAt?: Date;
 }
 
-// Extended types with relations
 export interface UserWithRole extends User {
   roleDetails: Role;
 }
@@ -107,13 +104,11 @@ export interface FeedbackWithDish extends Feedback {
   dish: Dish;
 }
 
-// Query result types
 export interface QueryResult<T> {
   rows: T[];
   rowCount: number;
 }
 
-// Database configuration
 export interface DatabaseConfig {
   host: string;
   port: number;

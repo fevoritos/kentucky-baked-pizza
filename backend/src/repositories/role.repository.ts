@@ -31,9 +31,6 @@ export class RoleRepository extends BaseRepository<Role> {
     return row;
   }
 
-  /**
-   * Find role by name
-   */
   async findByName(name: string): Promise<Role | null> {
     return this.findOneBy({ name });
   }

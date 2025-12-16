@@ -35,30 +35,18 @@ export class FeedbackRepository extends BaseRepository<Feedback> {
     return row;
   }
 
-  /**
-   * Find feedback by user ID
-   */
   async findByUserId(userId: number): Promise<Feedback[]> {
     return this.findBy({ user_id: userId });
   }
 
-  /**
-   * Find feedback by dish ID
-   */
   async findByDishId(dishId: number): Promise<Feedback[]> {
     return this.findBy({ dish_id: dishId });
   }
 
-  /**
-   * Find feedback by user and dish
-   */
   async findByUserAndDish(userId: number, dishId: number): Promise<Feedback | null> {
     return this.findOneBy({ user_id: userId, dish_id: dishId });
   }
 
-  /**
-   * Find feedback with user details
-   */
   async findByIdWithUser(id: number): Promise<FeedbackWithUser | null> {
     const query = `
       SELECT f.*, u.id as user_id, u.email, u.name as user_name, u.address, u.phone, u.role
@@ -89,9 +77,6 @@ export class FeedbackRepository extends BaseRepository<Feedback> {
     };
   }
 
-  /**
-   * Find feedback with dish details
-   */
   async findByIdWithDish(id: number): Promise<FeedbackWithDish | null> {
     const query = `
       SELECT f.*, d.id as dish_id, d.name as dish_name, d.price, d.image, d.rating
@@ -120,9 +105,6 @@ export class FeedbackRepository extends BaseRepository<Feedback> {
     };
   }
 
-  /**
-   * Create or update feedback
-   */
   async upsert(feedback: Partial<Feedback>): Promise<Feedback> {
     const query = `
       INSERT INTO feedback (user_id, dish_id, value)

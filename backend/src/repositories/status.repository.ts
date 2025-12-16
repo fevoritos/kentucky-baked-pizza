@@ -31,9 +31,6 @@ export class StatusRepository extends BaseRepository<Status> {
     return row;
   }
 
-  /**
-   * Find status by name
-   */
   async findByName(name: string): Promise<Status | null> {
     return this.findOneBy({ name });
   }
