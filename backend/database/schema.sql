@@ -88,18 +88,6 @@ CREATE TABLE IF NOT EXISTS feedback (
     UNIQUE(user_id, dish_id)
 );
 
-CREATE INDEX IF NOT EXISTS idx_user_email ON "user"(email);
-CREATE INDEX IF NOT EXISTS idx_user_role ON "user"(role);
-CREATE INDEX IF NOT EXISTS idx_dish_name ON dish(name);
-CREATE INDEX IF NOT EXISTS idx_dish_price ON dish(price);
-CREATE INDEX IF NOT EXISTS idx_order_user_id ON "order"(user_id);
-CREATE INDEX IF NOT EXISTS idx_order_status ON "order"(status);
-CREATE INDEX IF NOT EXISTS idx_order_created_at ON "order"(created_at);
-CREATE INDEX IF NOT EXISTS idx_cart_user_id ON cart(user_id);
-CREATE INDEX IF NOT EXISTS idx_ingredient_name ON ingredient(name);
-CREATE INDEX IF NOT EXISTS idx_feedback_user_id ON feedback(user_id);
-CREATE INDEX IF NOT EXISTS idx_feedback_dish_id ON feedback(dish_id);
-
 
 INSERT INTO ingredient (name) VALUES 
     ('салями'),
