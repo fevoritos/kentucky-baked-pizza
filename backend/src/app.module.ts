@@ -7,9 +7,18 @@ import { AuthModule } from './auth/auth.module';
 import { DishesModule } from './dishes/dishes.module';
 import { CartModule } from './cart/cart.module';
 import { OrdersModule } from './orders/orders.module';
+import { FeedbackModule } from './feedback/feedback.module';
 
 @Module({
-  imports: [DatabaseModule, RepositoriesModule, AuthModule, DishesModule, CartModule, OrdersModule],
+  imports: [
+    DatabaseModule,
+    RepositoriesModule,
+    AuthModule,
+    DishesModule,
+    CartModule,
+    OrdersModule,
+    FeedbackModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })

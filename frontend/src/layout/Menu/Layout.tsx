@@ -61,6 +61,32 @@ export function Layout() {
               {items.reduce((acc, i) => (acc += i.count), 0)}{' '}
             </span>
           </NavLink>
+          {profile?.role === 'admin' && (
+            <>
+              <NavLink
+                to="/admin/assortment"
+                className={({ isActive }) =>
+                  cn(styles['link'], {
+                    [styles.active]: isActive,
+                  })
+                }
+              >
+                <img src="/menu-icon.svg" alt="Иконка ассортимента" />
+                Ассортимент
+              </NavLink>
+              <NavLink
+                to="/admin/orders"
+                className={({ isActive }) =>
+                  cn(styles['link'], {
+                    [styles.active]: isActive,
+                  })
+                }
+              >
+                <img src="/cart-icon.svg" alt="Иконка заказов" />
+                Заказы
+              </NavLink>
+            </>
+          )}
         </div>
         <Button className={styles['exit']} onClick={logout}>
           <img src="/exit-icon.svg" alt="Иконка выхода" />

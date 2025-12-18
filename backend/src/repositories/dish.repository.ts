@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { BaseRepository } from './base.repository';
 import { DatabaseService } from '../database/database.service';
-import { Dish } from '../types/database.types';
+import { Dish, DishWithIngredientNames } from '../types/database.types';
 
 @Injectable()
 export class DishRepository extends BaseRepository<Dish> {
@@ -95,7 +95,7 @@ export class DishRepository extends BaseRepository<Dish> {
     return result.rowCount > 0;
   }
 
-  async findAllWithIngredients(): Promise<any[]> {
+  async findAllWithIngredients(): Promise<DishWithIngredientNames[]> {
     const query = `
       SELECT 
         d.id,
@@ -125,7 +125,7 @@ export class DishRepository extends BaseRepository<Dish> {
     }));
   }
 
-  async findByIdWithIngredients(id: number): Promise<any> {
+  async findByIdWithIngredients(id: number): Promise<DishWithIngredientNames | null> {
     const query = `
       SELECT 
         d.id,
@@ -158,7 +158,7 @@ export class DishRepository extends BaseRepository<Dish> {
     };
   }
 
-  async searchDishes(searchTerm: string): Promise<any[]> {
+  async searchDishes(searchTerm: string): Promise<DishWithIngredientNames[]> {
     const searchWords = searchTerm.split(/\s+/).filter((word) => word.length > 0);
 
     if (searchWords.length === 0) {

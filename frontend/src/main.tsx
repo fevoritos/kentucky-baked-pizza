@@ -16,6 +16,9 @@ import { RequireAuth } from './helpers/RequireAuth.tsx';
 import { Provider } from 'react-redux';
 import { store } from './store/store.ts';
 import { Success } from './pages/Success/Success.tsx';
+import { AdminAssortment } from './pages/Admin/Assortment/AdminAssortment.tsx';
+import { AdminOrders } from './pages/Admin/Orders/AdminOrders.tsx';
+import { RequireAdmin } from './helpers/RequireAdmin.tsx';
 
 const router = createBrowserRouter([
   {
@@ -37,6 +40,22 @@ const router = createBrowserRouter([
       {
         path: '/cart',
         element: <Cart />,
+      },
+      {
+        path: '/admin/assortment',
+        element: (
+          <RequireAdmin>
+            <AdminAssortment />
+          </RequireAdmin>
+        ),
+      },
+      {
+        path: '/admin/orders',
+        element: (
+          <RequireAdmin>
+            <AdminOrders />
+          </RequireAdmin>
+        ),
       },
       {
         path: 'product/:id',

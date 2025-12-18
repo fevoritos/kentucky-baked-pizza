@@ -1,11 +1,39 @@
-import { Controller, Get, Param, NotFoundException, Query } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiQuery } from '@nestjs/swagger';
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Body,
+  Param,
+  NotFoundException,
+  Query,
+  UseGuards,
+  ParseIntPipe,
+} from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiParam,
+  ApiQuery,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { DishRepository } from '../repositories/dish.repository';
+import { DishesService } from './dishes.service';
+import { CreateDishDto, UpdateDishDto } from './dto/dish.dto';
+import { AuthGuard } from '@nestjs/passport';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
+import { DishWithIngredientNames } from '../types/database.types';
 
 @ApiTags('Dishes')
 @Controller('dishes')
 export class DishesController {
-  constructor(private readonly dishRepository: DishRepository) { }
+  constructor(
+    private readonly dishRepository: DishRepository,
+    private readonly dishesService: DishesService,
+  ) {}
 
   @Get()
   @ApiOperation({ summary: 'Получить все блюда или найти блюда по названию/ингредиентам' })
@@ -39,7 +67,7 @@ export class DishesController {
       },
     },
   })
-  async getDishes(@Query('name') name?: string): Promise<any[]> {
+  async getDishes(@Query('name') name?: string): Promise<DishWithIngredientNames[]> {
     if (name && name.trim()) {
       return this.dishRepository.searchDishes(name.trim());
     }
@@ -71,7 +99,7 @@ export class DishesController {
     },
   })
   @ApiResponse({ status: 404, description: 'Блюдо не найдено' })
-  async getDishById(@Param('id') id: string): Promise<any> {
+  async getDishById(@Param('id') id: string): Promise<DishWithIngredientNames> {
     const dishId = parseInt(id, 10);
     if (isNaN(dishId)) {
       throw new NotFoundException('Неверный ID блюда');
@@ -83,5 +111,41 @@ export class DishesController {
     }
 
     return dish;
+  }
+
+  @Post()
+  @ApiBearerAuth('JWT-auth')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('admin')
+  @ApiOperation({ summary: 'Создать новое блюдо (Admin only)' })
+  @ApiResponse({ status: 201, description: 'Блюдо успешно создано' })
+  async createDish(@Body() createDishDto: CreateDishDto): Promise<DishWithIngredientNames | null> {
+    return this.dishesService.create(createDishDto);
+  }
+
+  @Put(':id')
+  @ApiBearerAuth('JWT-auth')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('admin')
+  @ApiOperation({ summary: 'Обновить блюдо (Admin only)' })
+  @ApiResponse({ status: 200, description: 'Блюдо успешно обновлено' })
+  @ApiResponse({ status: 404, description: 'Блюдо не найдено' })
+  async updateDish(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateDishDto: UpdateDishDto,
+  ): Promise<DishWithIngredientNames | null> {
+    return this.dishesService.update(id, updateDishDto);
+  }
+
+  @Delete(':id')
+  @ApiBearerAuth('JWT-auth')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('admin')
+  @ApiOperation({ summary: 'Удалить блюдо (Admin only)' })
+  @ApiResponse({ status: 200, description: 'Блюдо успешно удалено' })
+  @ApiResponse({ status: 404, description: 'Блюдо не найдено' })
+  async deleteDish(@Param('id', ParseIntPipe) id: number) {
+    await this.dishesService.delete(id);
+    return { message: 'Dish deleted successfully' };
   }
 }

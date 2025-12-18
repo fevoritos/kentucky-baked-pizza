@@ -63,7 +63,6 @@ export interface CartItem {
 }
 
 export interface Feedback {
-  id: number;
   value: number;
   userId: number;
   dishId: number;
@@ -76,6 +75,10 @@ export interface UserWithRole extends User {
 
 export interface DishWithIngredients extends Dish {
   ingredients: Ingredient[];
+}
+
+export interface DishWithIngredientNames extends Dish {
+  ingredients: string[];
 }
 
 export interface OrderWithItems extends Order {

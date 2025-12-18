@@ -90,13 +90,16 @@ export class AuthService {
     return await this.userRepository.findById(userId);
   }
 
-  async getProfile(userId: number): Promise<Omit<User, 'passwordHash'>> {
-    const user = await this.userRepository.findById(userId);
-    if (!user) {
+  async getProfile(userId: number): Promise<any> {
+    const userWithRole = await this.userRepository.findByIdWithRole(userId);
+    if (!userWithRole) {
       throw new UnauthorizedException('User not found');
     }
 
-    const { passwordHash, ...userProfile } = user;
-    return userProfile;
+    const { passwordHash, ...userProfile } = userWithRole;
+    return {
+      ...userProfile,
+      role: userWithRole.roleDetails.name,
+    };
   }
 }

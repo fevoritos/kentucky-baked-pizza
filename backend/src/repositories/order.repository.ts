@@ -38,6 +38,19 @@ export class OrderRepository extends BaseRepository<Order> {
     return this.findBy({ user_id: userId });
   }
 
+  async findAllWithDetails(): Promise<OrderWithItems[]> {
+    const query = `SELECT id FROM "order" ORDER BY created_at DESC`;
+    const result = await this.databaseService.query(query);
+    const orders: OrderWithItems[] = [];
+    for (const row of result.rows) {
+      const order = await this.findByIdWithItems(Number(row.id));
+      if (order) {
+        orders.push(order);
+      }
+    }
+    return orders;
+  }
+
   async findByIdWithItems(id: number): Promise<OrderWithItems | null> {
     const orderQuery = `SELECT * FROM "order" WHERE id = $1`;
     const orderResult = await this.databaseService.query(orderQuery, [id]);
@@ -175,5 +188,16 @@ export class OrderRepository extends BaseRepository<Order> {
     `;
     const result = await this.databaseService.query(query, [statusId, orderId]);
     return result.rowCount > 0;
+  }
+
+  async hasUserOrderedDish(userId: number, dishId: number): Promise<boolean> {
+    const query = `
+      SELECT 1 FROM "order" o
+      JOIN order_item oi ON o.id = oi.order_id
+      WHERE o.user_id = $1 AND oi.dish_id = $2
+      LIMIT 1
+    `;
+    const result = await this.databaseService.query(query, [userId, dishId]);
+    return result.rows.length > 0;
   }
 }

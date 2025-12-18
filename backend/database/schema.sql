@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS dish (
     name VARCHAR(255) NOT NULL,
     price DECIMAL(10,2) NOT NULL,
     image VARCHAR(500),
-    rating DECIMAL(3,2) DEFAULT 0.0 CHECK (rating >= 0 AND rating <= 5)
+    rating DECIMAL(3,2) DEFAULT NULL CHECK (rating >= 0 AND rating <= 5)
 );
 
 CREATE TABLE IF NOT EXISTS status (
@@ -108,12 +108,12 @@ INSERT INTO ingredient (name) VALUES
 ON CONFLICT (name) DO NOTHING;
 
 INSERT INTO dish (id, name, price, image, rating) VALUES 
-    (1, 'Наслаждение', 300.00, 'https://cdn-bucket.hb.ru-msk.vkcs.cloud/purple-images/demo/food/food1.png', 4.7),
-    (2, 'Такос', 280.00, 'https://cdn-bucket.hb.ru-msk.vkcs.cloud/purple-images/demo/food/food2.png', 4.8),
-    (3, 'Аццки острая', 320.00, 'https://cdn-bucket.hb.ru-msk.vkcs.cloud/purple-images/demo/food/food3.png', 4.9),
-    (4, 'Жаркое с сыром', 290.00, 'https://cdn-bucket.hb.ru-msk.vkcs.cloud/purple-images/demo/food/food4.png', 4.4),
-    (5, 'Цезарь с курицей', 290.00, 'https://cdn-bucket.hb.ru-msk.vkcs.cloud/purple-images/demo/food/food5.png', 4.8),
-    (6, 'Зелёный салат', 290.00, 'https://cdn-bucket.hb.ru-msk.vkcs.cloud/purple-images/demo/food/food6.png', 4.5)
+    (1, 'Наслаждение', 300.00, 'https://cdn-bucket.hb.ru-msk.vkcs.cloud/purple-images/demo/food/food1.png', NULL),
+    (2, 'Такос', 280.00, 'https://cdn-bucket.hb.ru-msk.vkcs.cloud/purple-images/demo/food/food2.png', NULL),
+    (3, 'Аццки острая', 320.00, 'https://cdn-bucket.hb.ru-msk.vkcs.cloud/purple-images/demo/food/food3.png', NULL),
+    (4, 'Жаркое с сыром', 290.00, 'https://cdn-bucket.hb.ru-msk.vkcs.cloud/purple-images/demo/food/food4.png', NULL),
+    (5, 'Цезарь с курицей', 290.00, 'https://cdn-bucket.hb.ru-msk.vkcs.cloud/purple-images/demo/food/food5.png', NULL),
+    (6, 'Зелёный салат', 290.00, 'https://cdn-bucket.hb.ru-msk.vkcs.cloud/purple-images/demo/food/food6.png', NULL)
 ON CONFLICT (id) DO NOTHING;
 
 DELETE FROM dish_ingredient;
@@ -146,3 +146,47 @@ INSERT INTO dish_ingredient (dish_id, ingredient_id) VALUES
     (6, (SELECT id FROM ingredient WHERE name = 'огурец')),
     (6, (SELECT id FROM ingredient WHERE name = 'орехи')),
     (6, (SELECT id FROM ingredient WHERE name = 'перец'));
+
+-- Добавление 3 пользователей
+INSERT INTO "user" (id, email, password_hash, name, address, phone, role) VALUES
+    (1, 'customer1@example.com', 'hash1', 'Иван Иванов', 'Москва, ул. Пушкина, 1', '+79001112233', 2),
+    (2, 'customer2@example.com', 'hash2', 'Петр Петров', 'СПб, ул. Ленина, 10', '+79004445566', 2),
+    (3, 'customer3@example.com', 'hash3', 'Мария Сидорова', 'Екатеринбург, ул. Мира, 5', '+79007778899', 2)
+ON CONFLICT (id) DO NOTHING;
+
+-- Добавление заказов для всех пользователей (каждый заказал все блюда)
+INSERT INTO "order" (id, user_id, status) VALUES
+    (1, 1, 3),
+    (2, 2, 3),
+    (3, 3, 3)
+ON CONFLICT (id) DO NOTHING;
+
+-- Добавление позиций в заказы (все 6 блюд для каждого заказа)
+INSERT INTO order_item (order_id, dish_id, quantity, price)
+SELECT o.id, d.id, 1, d.price
+FROM "order" o
+CROSS JOIN dish d
+WHERE o.id <= 3
+ON CONFLICT (order_id, dish_id) DO NOTHING;
+
+-- Добавление отзывов (каждый пользователь оценил каждое блюдо)
+INSERT INTO feedback (user_id, dish_id, value) VALUES
+    (1, 1, 5), (1, 2, 4), (1, 3, 5), (1, 4, 4), (1, 5, 4), (1, 6, 4),
+    (2, 1, 4), (2, 2, 4), (2, 3, 5), (2, 4, 4), (2, 5, 5), (2, 6, 4),
+    (3, 1, 5), (3, 2, 4), (3, 3, 5), (3, 4, 4), (3, 5, 4), (3, 6, 4)
+ON CONFLICT (user_id, dish_id) DO NOTHING;
+
+-- Синхронизация последовательностей после ручной вставки ID
+SELECT setval(pg_get_serial_sequence('role', 'id'), (SELECT MAX(id) FROM role));
+SELECT setval(pg_get_serial_sequence('user', 'id'), (SELECT MAX(id) FROM "user"));
+SELECT setval(pg_get_serial_sequence('dish', 'id'), (SELECT MAX(id) FROM dish));
+SELECT setval(pg_get_serial_sequence('status', 'id'), (SELECT MAX(id) FROM status));
+SELECT setval(pg_get_serial_sequence('order', 'id'), (SELECT MAX(id) FROM "order"));
+
+-- Обновление рейтинга блюд на основе среднего арифметического отзывов
+UPDATE dish d
+SET rating = (
+    SELECT ROUND(AVG(f.value), 2)
+    FROM feedback f
+    WHERE f.dish_id = d.id
+);

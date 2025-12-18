@@ -36,4 +36,16 @@ export class OrdersService {
     }
     return order;
   }
+
+  async getAllOrders() {
+    return this.orderRepository.findAllWithDetails();
+  }
+
+  async updateStatus(orderId: number, statusId: number) {
+    const order = await this.orderRepository.findById(orderId);
+    if (!order) {
+      throw new NotFoundException('Order not found');
+    }
+    return this.orderRepository.updateStatus(orderId, statusId);
+  }
 }
