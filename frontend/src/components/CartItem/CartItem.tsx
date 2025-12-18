@@ -8,15 +8,15 @@ function CartItem(props: CartItemProps) {
   const dispatch = useDispatch<AppDispatch>();
 
   const increase = () => {
-    dispatch(cartActions.add(props.id));
+    dispatch(cartActions.updateCartQuantity({ dishId: props.id, quantity: props.count + 1 }));
   };
 
   const decrease = () => {
-    dispatch(cartActions.remove(props.id));
+    dispatch(cartActions.updateCartQuantity({ dishId: props.id, quantity: props.count - 1 }));
   };
 
   const remove = () => {
-    dispatch(cartActions.delete(props.id));
+    dispatch(cartActions.removeFromCart(props.id));
   };
 
   return (

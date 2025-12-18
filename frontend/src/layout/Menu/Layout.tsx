@@ -5,6 +5,7 @@ import cn from 'classnames';
 import { useDispatch, useSelector } from 'react-redux';
 import type { AppDispatch, RootState } from '../../store/store';
 import { getProfile, userActions } from '../../store/user.slice';
+import { cartActions } from '../../store/cart.slice';
 import { useEffect } from 'react';
 
 export function Layout() {
@@ -12,10 +13,14 @@ export function Layout() {
   const dispatch = useDispatch<AppDispatch>();
   const profile = useSelector((s: RootState) => s.user.profile);
   const items = useSelector((s: RootState) => s.cart.items);
+  const jwt = useSelector((s: RootState) => s.user.jwt);
 
   useEffect(() => {
     dispatch(getProfile());
-  }, [dispatch]);
+    if (jwt) {
+      dispatch(cartActions.fetchCart());
+    }
+  }, [dispatch, jwt]);
 
   const logout = () => {
     dispatch(userActions.logout());

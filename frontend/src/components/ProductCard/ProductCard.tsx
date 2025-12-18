@@ -11,7 +11,7 @@ function ProductCard(props: ProductCardProps) {
 
   const add = (e: MouseEvent) => {
     e.preventDefault();
-    dispatch(cartActions.add(props.id));
+    dispatch(cartActions.addToCart({ dishId: props.id, quantity: 1 }));
   };
 
   return (

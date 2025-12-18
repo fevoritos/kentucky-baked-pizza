@@ -75,12 +75,7 @@ export class OrderRepository extends BaseRepository<Order> {
 
     return {
       ...order,
-      items: items.map((item) => ({
-        orderId: item.orderId,
-        dishId: item.dishId,
-        quantity: item.quantity,
-        price: item.price,
-      })),
+      items: items,
       user: {
         id: user.id,
         email: user.email,

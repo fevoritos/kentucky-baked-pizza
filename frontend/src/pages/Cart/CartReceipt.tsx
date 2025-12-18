@@ -1,82 +1,47 @@
-import { useEffect, useState } from 'react';
 import Button from '../../components/Button/Button';
 import CartItem from '../../components/CartItem/CartItem';
 import Headling from '../../components/Headling/Headling';
 import { cartActions } from '../../store/cart.slice';
 import styles from './Cart.module.css';
-import type { IProduct } from '../../interfaces/product.interface';
-import {
-  useDispatch,
-  // useSelector
-} from 'react-redux';
-import type {
-  AppDispatch,
-  // RootState
-} from '../../store/store';
+import { useDispatch, useSelector } from 'react-redux';
+import type { AppDispatch, RootState } from '../../store/store';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import { PREFIX } from '../../helpers/API';
-import type { CartReceiptProps } from './CartReceipt.props';
+import { checkout } from '../../store/orders.slice';
 
 const DELIVERY_FEE = 169;
 
-function CartReceipt({ items }: CartReceiptProps) {
-  const [cartProducts, setCartProducts] = useState<IProduct[]>([]);
-  // const jwt = useSelector((s: RootState) => s.user.jwt);
+function CartReceipt() {
+  const backendCart = useSelector((s: RootState) => s.cart.backendCart);
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
-  const count = items.reduce((acc, i) => (acc += i.count), 0);
-  const total = items
-    .map((i) => {
-      const product = cartProducts.find((p) => p.id === i.id);
-      if (!product) {
-        return 0;
-      }
-      return i.count * product.price;
-    })
-    .reduce((acc, i) => (acc += i), 0);
 
-  const getItem = async (id: number) => {
-    const { data } = await axios.get<IProduct>(`${PREFIX}/dishes/${id}`);
-    return data;
+  const items = backendCart?.items || [];
+  const count = items.reduce((acc, i) => acc + i.quantity, 0);
+  const total = items.reduce((acc, i) => acc + i.quantity * i.dish.price, 0);
+
+  const onCheckout = async () => {
+    try {
+      await dispatch(checkout()).unwrap();
+      dispatch(cartActions.reset());
+      navigate('/success');
+    } catch (e) {
+      console.error('Checkout failed', e);
+    }
   };
-
-  const loadAllItems = async () => {
-    const res = await Promise.all(items.map((i) => getItem(i.id)));
-    setCartProducts(res);
-  };
-
-  const checkout = async () => {
-    // await axios.post(
-    //   `${PREFIX}/order`,
-    //   {
-    //     products: items,
-    //   },
-    //   {
-    //     headers: {
-    //       Authorization: `Bearer ${jwt}`,
-    //     },
-    //   },
-    // );
-    dispatch(cartActions.clean());
-    navigate('/success');
-  };
-
-  useEffect(() => {
-    loadAllItems();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [items]);
 
   return (
     <>
       <Headling className={styles['headling']}>Корзина</Headling>
-      {items.map((i) => {
-        const product = cartProducts.find((p) => p.id === i.id);
-        if (!product) {
-          return;
-        }
-        return <CartItem count={i.count} {...product} key={product.id} />;
-      })}
+      {items.map((i) => (
+        <CartItem
+          key={i.dishId}
+          id={i.dishId}
+          count={i.quantity}
+          name={i.dish.name}
+          price={i.dish.price}
+          image={i.dish.image}
+        />
+      ))}
       <div className={styles['line']}>
         <div className={styles['text']}>Итог</div>
         <div className={styles['price']}>
@@ -100,7 +65,7 @@ function CartReceipt({ items }: CartReceiptProps) {
         </div>
       </div>
       <div className={styles['checkout']}>
-        <Button appearance="big" onClick={checkout}>
+        <Button appearance="big" onClick={onCheckout}>
           Оформить
         </Button>
       </div>

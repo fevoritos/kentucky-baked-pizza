@@ -80,11 +80,7 @@ export class CartRepository extends BaseRepository<Cart> {
 
     return {
       ...cart,
-      items: items.map((item) => ({
-        cartId: item.cartId,
-        dishId: item.dishId,
-        quantity: item.quantity,
-      })),
+      items: items,
       user: {
         id: Number(user.id),
         email: String(user.email),

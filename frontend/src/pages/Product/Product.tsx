@@ -28,7 +28,7 @@ export function Product() {
                   className={styles['cart_button']}
                   onClick={(e) => {
                     e.preventDefault();
-                    dispatch(cartActions.add(product.id));
+                    dispatch(cartActions.addToCart({ dishId: product.id, quantity: 1 }));
                   }}
                   appearance="small"
                 >

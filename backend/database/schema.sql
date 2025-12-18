@@ -80,12 +80,11 @@ CREATE TABLE IF NOT EXISTS cart_item (
 );
 
 CREATE TABLE IF NOT EXISTS feedback (
-    id SERIAL PRIMARY KEY,
     value INTEGER NOT NULL CHECK (value >= 1 AND value <= 5),
     user_id INTEGER NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
     dish_id INTEGER NOT NULL REFERENCES dish(id) ON DELETE CASCADE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE(user_id, dish_id)
+    PRIMARY KEY (user_id, dish_id)
 );
 
 

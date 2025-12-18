@@ -79,12 +79,12 @@ export interface DishWithIngredients extends Dish {
 }
 
 export interface OrderWithItems extends Order {
-  items: OrderItem[];
+  items: OrderItemWithDish[];
   user: User;
 }
 
 export interface CartWithItems extends Cart {
-  items: CartItem[];
+  items: CartItemWithDish[];
   user: User;
 }
 
