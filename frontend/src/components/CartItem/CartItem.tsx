@@ -12,6 +12,7 @@ function CartItem(props: CartItemProps) {
   };
 
   const decrease = () => {
+    if (props.count == 1) return;
     dispatch(cartActions.updateCartQuantity({ dishId: props.id, quantity: props.count - 1 }));
   };
 

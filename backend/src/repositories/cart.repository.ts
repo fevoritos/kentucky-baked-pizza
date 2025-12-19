@@ -154,7 +154,7 @@ export class CartRepository extends BaseRepository<Cart> {
     return Number((result.rows[0] as Record<string, any>)?.total_items || '0');
   }
 
-  async convertToOrder(cartId: number): Promise<number | null> {
+  async convertToOrder(cartId: number, address: string, phone: string): Promise<number | null> {
     return await this.databaseService.transaction(async (client) => {
       const cartQuery = `SELECT * FROM cart WHERE id = $1`;
       const cartResult = await client.query(cartQuery, [cartId]);
@@ -175,8 +175,8 @@ export class CartRepository extends BaseRepository<Cart> {
         dishResult.rows.map((row: any) => [Number(row.id), parseFloat(row.price)]),
       );
 
-      const orderQuery = `INSERT INTO "order" (user_id, status) VALUES ($1, $2) RETURNING id`;
-      const orderResult = await client.query(orderQuery, [cart.userId, 1]);
+      const orderQuery = `INSERT INTO "order" (user_id, status, address, phone) VALUES ($1, $2, $3, $4) RETURNING id`;
+      const orderResult = await client.query(orderQuery, [cart.userId, 1, address, phone]);
       const orderId = Number((orderResult.rows[0] as Record<string, any>).id);
 
       for (const item of itemsResult.rows) {

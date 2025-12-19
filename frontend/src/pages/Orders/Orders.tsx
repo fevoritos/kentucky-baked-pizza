@@ -8,7 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import cn from 'classnames';
 
 const STATUS_NAMES: Record<number, string> = {
-  1: 'Новый',
+  1: 'Обработка',
   2: 'Принят',
   3: 'Готовится',
   4: 'Доставляется',
@@ -35,7 +35,9 @@ export function Orders() {
 
   return (
     <div className={styles['wrapper']}>
-      <Headling className={styles['headling']}>История заказов</Headling>
+      <Headling className={cn(styles['headling'], styles['mobileHidden'])}>
+        История заказов
+      </Headling>
       {orders.length === 0 ? (
         <div className={styles['empty']}>У вас пока нет заказов</div>
       ) : (

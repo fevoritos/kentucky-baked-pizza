@@ -19,6 +19,17 @@ export function AdminAssortment() {
     getProducts();
   }, []);
 
+  useEffect(() => {
+    if (isEditing) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isEditing]);
+
   const getProducts = async () => {
     try {
       setIsloading(true);
@@ -87,8 +98,10 @@ export function AdminAssortment() {
   return (
     <>
       <div className={styles['head']}>
-        <Headling>Управление ассортиментом</Headling>
-        <Button onClick={handleAdd}>Добавить блюдо</Button>
+        <Headling className={styles['mobileHidden']}>Управление ассортиментом</Headling>
+        <Button onClick={handleAdd} className={styles['addButton']}>
+          Добавить блюдо
+        </Button>
       </div>
 
       {isEditing && (

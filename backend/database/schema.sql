@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS status (
 );
 
 INSERT INTO status (id, name) VALUES 
-    (1, 'новый'),
+    (1, 'обработка'),
     (2, 'принят'),
     (3, 'готовится'),
     (4, 'доставляется'),
@@ -56,6 +56,8 @@ CREATE TABLE IF NOT EXISTS "order" (
     user_id INTEGER NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
     status INTEGER NOT NULL REFERENCES status(id) ON DELETE RESTRICT,
     delivery_fee DECIMAL(10,2) NOT NULL DEFAULT 169.00,
+    address TEXT NOT NULL,
+    phone VARCHAR(20) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -156,10 +158,10 @@ INSERT INTO "user" (id, email, password_hash, name, address, phone, role) VALUES
     (3, 'customer3@example.com', 'hash3', 'Мария Сидорова', 'Екатеринбург, ул. Мира, 5', '+79007778899', 2)
 ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO "order" (id, user_id, status, delivery_fee) VALUES
-    (1, 1, 5, 169.00),
-    (2, 2, 5, 169.00),
-    (3, 3, 5, 169.00)
+INSERT INTO "order" (id, user_id, status, delivery_fee, address, phone) VALUES
+    (1, 1, 5, 169.00, 'Москва, ул. Пушкина, 1', '+79001112233'),
+    (2, 2, 5, 169.00, 'СПб, ул. Ленина, 10', '+79004445566'),
+    (3, 3, 5, 169.00, 'Екатеринбург, ул. Мира, 5', '+79007778899')
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO order_item (order_id, dish_id, quantity, price)

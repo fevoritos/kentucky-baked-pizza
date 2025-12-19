@@ -12,6 +12,8 @@ interface IOrder {
   userId: number;
   status: number;
   deliveryFee: number;
+  address: string;
+  phone: string;
   createdAt: string;
   items: {
     dishId: number;
@@ -74,7 +76,7 @@ export function AdminOrders() {
 
   return (
     <>
-      <Headling>Управление заказами</Headling>
+      <Headling className={styles['mobileHidden']}>Управление заказами</Headling>
       <div className={styles['list']}>
         {isLoading && <div>Загрузка...</div>}
         <table className={styles['table']}>
@@ -95,6 +97,8 @@ export function AdminOrders() {
                 <td>
                   <div>{order.user?.name}</div>
                   <div className={styles['email']}>{order.user?.email}</div>
+                  <div className={styles['phone']}>{order.phone}</div>
+                  <div className={styles['address']}>{order.address}</div>
                 </td>
                 <td>
                   <div>{order.items.map((i) => `${i.dish.name} x${i.quantity}`).join(', ')}</div>
@@ -123,6 +127,50 @@ export function AdminOrders() {
             ))}
           </tbody>
         </table>
+        <div className={styles['mobile-list']}>
+          {orders.map((order) => (
+            <div key={order.id} className={styles['mobile-card']}>
+              <div className={styles['card-header']}>
+                <div className={styles['card-id']}>Заказ №{order.id}</div>
+                <select
+                  value={order.status}
+                  onChange={(e) => handleStatusChange(order.id, Number(e.target.value))}
+                  className={styles['select']}
+                >
+                  {STATUSES.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className={styles['card-section']}>
+                <div className={styles['card-label']}>Клиент</div>
+                <div>{order.user?.name}</div>
+                <div className={styles['email']}>{order.user?.email}</div>
+                <div className={styles['phone']}>{order.phone}</div>
+                <div className={styles['address']}>{order.address}</div>
+              </div>
+              <div className={styles['card-section']}>
+                <div className={styles['card-label']}>Состав</div>
+                <div>{order.items.map((i) => `${i.dish.name} x${i.quantity}`).join(', ')}</div>
+                <div className={styles['delivery']}>Доставка: {order.deliveryFee} ₽</div>
+              </div>
+              <div className={styles['card-section']}>
+                <div className={styles['card-label']}>Сумма</div>
+                <div className={styles['card-price']}>
+                  {order.items.reduce((acc, i) => acc + i.price * i.quantity, 0) +
+                    order.deliveryFee}{' '}
+                  ₽
+                </div>
+              </div>
+              <div className={styles['card-section']}>
+                <div className={styles['card-label']}>Дата</div>
+                <div>{new Date(order.createdAt).toLocaleString()}</div>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </>
   );

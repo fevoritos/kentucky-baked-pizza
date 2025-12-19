@@ -167,3 +167,13 @@
   color: #ff4d4f;
 }
 
+.mobileHidden {
+  display: block;
+}
+
+@media (max-width: 900px) {
+  .mobileHidden {
+    display: none;
+  }
+}
+

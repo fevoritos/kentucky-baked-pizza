@@ -94,3 +94,53 @@
     font-size: 16px;
     color: var(--text-color);
 }
+
+@media (max-width: 900px) {
+    .item {
+        gap: 15px;
+        margin-bottom: 20px;
+        max-width: 100%;
+    }
+
+    .image {
+        width: 70px;
+        height: 70px;
+        flex-shrink: 0;
+    }
+
+    .description {
+        gap: 8px;
+        flex: 1;
+        min-width: 0;
+    }
+
+    .name {
+        font-size: 16px;
+    }
+
+    .price {
+        font-size: 14px;
+    }
+
+    .actions {
+        gap: 8px;
+        margin-left: auto;
+    }
+
+    .minus,
+    .plus {
+        width: 28px;
+        height: 28px;
+    }
+
+    .remove {
+        width: 28px;
+        height: 28px;
+        margin-left: 0;
+        margin-top: 4px;
+    }
+
+    .number {
+        font-size: 14px;
+    }
+}

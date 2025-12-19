@@ -15,7 +15,7 @@ import { OrdersService } from './orders.service';
 import { User } from '../types/database.types';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
-import { UpdateOrderStatusDto } from './dto/order.dto';
+import { UpdateOrderStatusDto, CheckoutDto } from './dto/order.dto';
 
 @ApiTags('Orders')
 @ApiBearerAuth('JWT-auth')
@@ -28,8 +28,8 @@ export class OrdersController {
   @ApiOperation({ summary: 'Оформить заказ из текущей корзины' })
   @ApiResponse({ status: 201, description: 'Заказ успешно оформлен' })
   @ApiResponse({ status: 400, description: 'Корзина пуста' })
-  async checkout(@Request() req: { user: User }) {
-    return this.ordersService.checkout(req.user.id);
+  async checkout(@Request() req: { user: User }, @Body() checkoutDto: CheckoutDto) {
+    return this.ordersService.checkout(req.user.id, checkoutDto.address, checkoutDto.phone);
   }
 
   @Get()

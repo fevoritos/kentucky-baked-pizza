@@ -29,21 +29,25 @@ export const fetchOrders = createAsyncThunk<IOrder[], void, { state: RootState }
   },
 );
 
-export const checkout = createAsyncThunk<IOrder, void, { state: RootState }>(
-  'orders/checkout',
-  async (_, thunkApi) => {
-    const jwt = thunkApi.getState().user.jwt;
-    if (!jwt) throw new Error('No JWT');
-    const { data } = await axios.post<IOrder>(
-      `${PREFIX}/orders/checkout`,
-      {},
-      {
-        headers: { Authorization: `Bearer ${jwt}` },
-      },
-    );
-    return data;
-  },
-);
+export const checkout = createAsyncThunk<
+  IOrder,
+  { address: string; phone: string },
+  { state: RootState }
+>('orders/checkout', async (checkoutData, thunkApi) => {
+  const jwt = thunkApi.getState().user.jwt;
+  if (!jwt) throw new Error('No JWT');
+  const { data } = await axios.post<IOrder>(
+    `${PREFIX}/orders/checkout`,
+    {
+      address: checkoutData.address,
+      phone: checkoutData.phone,
+    },
+    {
+      headers: { Authorization: `Bearer ${jwt}` },
+    },
+  );
+  return data;
+});
 
 export const ordersSlice = createSlice({
   name: 'orders',

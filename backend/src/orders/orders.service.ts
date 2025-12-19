@@ -9,13 +9,13 @@ export class OrdersService {
     private readonly cartRepository: CartRepository,
   ) {}
 
-  async checkout(userId: number) {
+  async checkout(userId: number, address: string, phone: string) {
     const cart = await this.cartRepository.findByUserId(userId);
     if (!cart) {
       throw new NotFoundException('Cart not found');
     }
 
-    const orderId = await this.cartRepository.convertToOrder(cart.id);
+    const orderId = await this.cartRepository.convertToOrder(cart.id, address, phone);
     if (!orderId) {
       throw new BadRequestException('Cannot create order from an empty cart');
     }

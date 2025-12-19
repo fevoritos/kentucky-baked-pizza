@@ -1,4 +1,4 @@
-import { Await, useLoaderData, useNavigate } from 'react-router-dom';
+import { Await, useLoaderData } from 'react-router-dom';
 import type { IProduct } from '../../interfaces/product.interface';
 import { Suspense, useEffect } from 'react';
 import Headling from '../../components/Headling/Headling';
@@ -10,11 +10,11 @@ import { cartActions } from '../../store/cart.slice';
 import { fetchOrders } from '../../store/orders.slice';
 import { fetchMyRating, submitRating } from '../../store/feedback.slice';
 import cn from 'classnames';
+import { toast } from 'react-toastify';
 
 export function Product() {
   const data = useLoaderData() as { data: IProduct };
   const dispatch = useDispatch<AppDispatch>();
-  const navigate = useNavigate();
   const { items: orders } = useSelector((s: RootState) => s.orders);
   const userRatings = useSelector((s: RootState) => s.feedback.ratings);
 
@@ -42,7 +42,6 @@ export function Product() {
                 hasOrdered={hasOrdered}
                 userRating={userRating}
                 handleRating={handleRating}
-                navigate={navigate}
                 dispatch={dispatch}
               />
             );
@@ -58,14 +57,12 @@ function ProductContent({
   hasOrdered,
   userRating,
   handleRating,
-  navigate,
   dispatch,
 }: {
   product: IProduct;
   hasOrdered: boolean;
   userRating: number | undefined;
   handleRating: (id: number, rating: number) => void;
-  navigate: (path: string) => void;
   dispatch: AppDispatch;
 }) {
   useEffect(() => {
@@ -77,20 +74,10 @@ function ProductContent({
   return (
     <>
       <div className={styles['head']}>
-        <button className={styles['back_button']} onClick={() => navigate('/')}>
+        <button className={styles['back_button']} onClick={() => window.history.back()}>
           <img src="/back.svg" alt="Вернуться в меню" />
         </button>
         <Headling className={styles['headling']}>{product.name}</Headling>
-        <Button
-          className={styles['cart_button']}
-          onClick={(e) => {
-            e.preventDefault();
-            dispatch(cartActions.addToCart({ dishId: product.id, quantity: 1 }));
-          }}
-          appearance="small"
-        >
-          <img src="/cart-button-icon.svg" alt="Иконка корзины" />В корзину
-        </Button>
       </div>
       <div className={styles['wrapper']}>
         <div
@@ -138,6 +125,21 @@ function ProductContent({
               </li>
             ))}
           </ul>
+          <Button
+            className={styles['cart_button']}
+            onClick={async (e) => {
+              e.preventDefault();
+              try {
+                await dispatch(cartActions.addToCart({ dishId: product.id, quantity: 1 })).unwrap();
+                toast.success('Товар добавлен в корзину!');
+              } catch {
+                toast.error('Не удалось добавить товар в корзину');
+              }
+            }}
+            appearance="small"
+          >
+            <img src="/cart-button-icon.svg" alt="Иконка корзины" />В корзину
+          </Button>
         </div>
       </div>
     </>

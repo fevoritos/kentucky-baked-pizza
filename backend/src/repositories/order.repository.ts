@@ -23,6 +23,8 @@ export class OrderRepository extends BaseRepository<Order> {
       userId: Number(row.user_id),
       status: Number(row.status),
       deliveryFee: parseFloat(row.delivery_fee),
+      address: String(row.address),
+      phone: String(row.phone),
       createdAt: row.created_at ? new Date(row.created_at) : undefined,
       updatedAt: row.updated_at ? new Date(row.updated_at) : undefined,
     };
