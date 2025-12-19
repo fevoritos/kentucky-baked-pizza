@@ -13,6 +13,8 @@ export interface IOrder {
   userId: number;
   status: number;
   deliveryFee: number;
+  address: string;
+  phone: string;
   createdAt: string;
   updatedAt: string;
   items: IOrderItem[];

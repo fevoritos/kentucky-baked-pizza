@@ -6,6 +6,7 @@ import { fetchOrders } from '../../store/orders.slice';
 import styles from './Orders.module.css';
 import { useNavigate } from 'react-router-dom';
 import cn from 'classnames';
+import { formatDateTime } from '../../helpers/dateFormat';
 
 const STATUS_NAMES: Record<number, string> = {
   1: 'Обработка',
@@ -51,12 +52,14 @@ export function Orders() {
                     {STATUS_NAMES[order.status] || 'Неизвестно'}
                   </div>
                 </div>
-                <div className={styles['order_date']}>
-                  {new Date(order.createdAt).toLocaleDateString()}{' '}
-                  {new Date(order.createdAt).toLocaleTimeString([], {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })}
+                <div className={styles['order_info']}>
+                  <div className={styles['order_date']}>{formatDateTime(order.createdAt)}</div>
+                  {order.address && (
+                    <div className={styles['order_address']}>
+                      <span className={styles['address_label']}>Адрес доставки:</span>{' '}
+                      {order.address}
+                    </div>
+                  )}
                 </div>
               </div>
               <div className={styles['items']}>

@@ -6,6 +6,7 @@ import axios from 'axios';
 import { useSelector } from 'react-redux';
 import type { RootState } from '../../../store/store';
 import styles from './Orders.module.css';
+import { formatDateTime } from '../../../helpers/dateFormat';
 
 interface IOrder {
   id: number;
@@ -109,7 +110,7 @@ export function AdminOrders() {
                     order.deliveryFee}{' '}
                   ₽
                 </td>
-                <td>{new Date(order.createdAt).toLocaleString()}</td>
+                <td>{formatDateTime(order.createdAt)}</td>
                 <td>
                   <select
                     value={order.status}
@@ -166,7 +167,7 @@ export function AdminOrders() {
               </div>
               <div className={styles['card-section']}>
                 <div className={styles['card-label']}>Дата</div>
-                <div>{new Date(order.createdAt).toLocaleString()}</div>
+                <div>{formatDateTime(order.createdAt)}</div>
               </div>
             </div>
           ))}
