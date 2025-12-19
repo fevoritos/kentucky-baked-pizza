@@ -40,6 +40,7 @@ export interface Order {
   id: number;
   userId: number;
   status: number;
+  deliveryFee: number;
   createdAt?: Date;
   updatedAt?: Date;
 }

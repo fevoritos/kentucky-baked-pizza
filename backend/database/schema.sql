@@ -32,10 +32,12 @@ CREATE TABLE IF NOT EXISTS status (
 );
 
 INSERT INTO status (id, name) VALUES 
-    (1, 'pending'),
-    (2, 'processing'),
-    (3, 'completed'),
-    (4, 'cancelled')
+    (1, 'новый'),
+    (2, 'принят'),
+    (3, 'готовится'),
+    (4, 'доставляется'),
+    (5, 'доставлен'),
+    (6, 'отклонён')
 ON CONFLICT (id) DO NOTHING;
 
 CREATE TABLE IF NOT EXISTS ingredient (
@@ -53,6 +55,7 @@ CREATE TABLE IF NOT EXISTS "order" (
     id SERIAL PRIMARY KEY,
     user_id INTEGER NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
     status INTEGER NOT NULL REFERENCES status(id) ON DELETE RESTRICT,
+    delivery_fee DECIMAL(10,2) NOT NULL DEFAULT 169.00,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -147,21 +150,18 @@ INSERT INTO dish_ingredient (dish_id, ingredient_id) VALUES
     (6, (SELECT id FROM ingredient WHERE name = 'орехи')),
     (6, (SELECT id FROM ingredient WHERE name = 'перец'));
 
--- Добавление 3 пользователей
 INSERT INTO "user" (id, email, password_hash, name, address, phone, role) VALUES
-    (1, 'customer1@example.com', 'hash1', 'Иван Иванов', 'Москва, ул. Пушкина, 1', '+79001112233', 2),
+    (1, 'a@gmail.com', '$2b$10$GAa5lRxlldl0bfQEbdLhvenGwu9SNllc5Fxn16kPL4/F0EzjgiSAO', 'Иван Иванов', 'Москва, ул. Пушкина, 1', '+79001112233', 1),
     (2, 'customer2@example.com', 'hash2', 'Петр Петров', 'СПб, ул. Ленина, 10', '+79004445566', 2),
     (3, 'customer3@example.com', 'hash3', 'Мария Сидорова', 'Екатеринбург, ул. Мира, 5', '+79007778899', 2)
 ON CONFLICT (id) DO NOTHING;
 
--- Добавление заказов для всех пользователей (каждый заказал все блюда)
-INSERT INTO "order" (id, user_id, status) VALUES
-    (1, 1, 3),
-    (2, 2, 3),
-    (3, 3, 3)
+INSERT INTO "order" (id, user_id, status, delivery_fee) VALUES
+    (1, 1, 5, 169.00),
+    (2, 2, 5, 169.00),
+    (3, 3, 5, 169.00)
 ON CONFLICT (id) DO NOTHING;
 
--- Добавление позиций в заказы (все 6 блюд для каждого заказа)
 INSERT INTO order_item (order_id, dish_id, quantity, price)
 SELECT o.id, d.id, 1, d.price
 FROM "order" o
@@ -169,21 +169,18 @@ CROSS JOIN dish d
 WHERE o.id <= 3
 ON CONFLICT (order_id, dish_id) DO NOTHING;
 
--- Добавление отзывов (каждый пользователь оценил каждое блюдо)
 INSERT INTO feedback (user_id, dish_id, value) VALUES
-    (1, 1, 5), (1, 2, 4), (1, 3, 5), (1, 4, 4), (1, 5, 4), (1, 6, 4),
-    (2, 1, 4), (2, 2, 4), (2, 3, 5), (2, 4, 4), (2, 5, 5), (2, 6, 4),
-    (3, 1, 5), (3, 2, 4), (3, 3, 5), (3, 4, 4), (3, 5, 4), (3, 6, 4)
+    (1, 1, 5), (1, 2, 5), (1, 3, 5), (1, 4, 4), (1, 5, 4), (1, 6, 5),
+    (2, 1, 4), (2, 2, 5), (2, 3, 5), (2, 4, 5), (2, 5, 5), (2, 6, 5),
+    (3, 1, 5), (3, 2, 5), (3, 3, 5), (3, 4, 4), (3, 5, 4), (3, 6, 3)
 ON CONFLICT (user_id, dish_id) DO NOTHING;
 
--- Синхронизация последовательностей после ручной вставки ID
 SELECT setval(pg_get_serial_sequence('role', 'id'), (SELECT MAX(id) FROM role));
 SELECT setval(pg_get_serial_sequence('user', 'id'), (SELECT MAX(id) FROM "user"));
 SELECT setval(pg_get_serial_sequence('dish', 'id'), (SELECT MAX(id) FROM dish));
 SELECT setval(pg_get_serial_sequence('status', 'id'), (SELECT MAX(id) FROM status));
 SELECT setval(pg_get_serial_sequence('order', 'id'), (SELECT MAX(id) FROM "order"));
 
--- Обновление рейтинга блюд на основе среднего арифметического отзывов
 UPDATE dish d
 SET rating = (
     SELECT ROUND(AVG(f.value), 2)

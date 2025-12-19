@@ -11,6 +11,7 @@ interface IOrder {
   id: number;
   userId: number;
   status: number;
+  deliveryFee: number;
   createdAt: string;
   items: {
     dishId: number;
@@ -26,9 +27,11 @@ interface IOrder {
 
 const STATUSES = [
   { id: 1, name: 'Новый' },
-  { id: 2, name: 'В процессе' },
-  { id: 3, name: 'Завершен' },
-  { id: 4, name: 'Отменен' },
+  { id: 2, name: 'Принят' },
+  { id: 3, name: 'Готовится' },
+  { id: 4, name: 'Доставляется' },
+  { id: 5, name: 'Доставлен' },
+  { id: 6, name: 'Отклонён' },
 ];
 
 export function AdminOrders() {
@@ -93,8 +96,15 @@ export function AdminOrders() {
                   <div>{order.user?.name}</div>
                   <div className={styles['email']}>{order.user?.email}</div>
                 </td>
-                <td>{order.items.map((i) => `${i.dish.name} x${i.quantity}`).join(', ')}</td>
-                <td>{order.items.reduce((acc, i) => acc + i.price * i.quantity, 0)} ₽</td>
+                <td>
+                  <div>{order.items.map((i) => `${i.dish.name} x${i.quantity}`).join(', ')}</div>
+                  <div className={styles['delivery']}>Доставка: {order.deliveryFee} ₽</div>
+                </td>
+                <td>
+                  {order.items.reduce((acc, i) => acc + i.price * i.quantity, 0) +
+                    order.deliveryFee}{' '}
+                  ₽
+                </td>
                 <td>{new Date(order.createdAt).toLocaleString()}</td>
                 <td>
                   <select

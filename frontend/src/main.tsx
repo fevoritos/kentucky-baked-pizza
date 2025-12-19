@@ -18,6 +18,7 @@ import { store } from './store/store.ts';
 import { Success } from './pages/Success/Success.tsx';
 import { AdminAssortment } from './pages/Admin/Assortment/AdminAssortment.tsx';
 import { AdminOrders } from './pages/Admin/Orders/AdminOrders.tsx';
+import { Orders } from './pages/Orders/Orders.tsx';
 import { RequireAdmin } from './helpers/RequireAdmin.tsx';
 
 const router = createBrowserRouter([
@@ -40,6 +41,10 @@ const router = createBrowserRouter([
       {
         path: '/cart',
         element: <Cart />,
+      },
+      {
+        path: '/orders',
+        element: <Orders />,
       },
       {
         path: '/admin/assortment',

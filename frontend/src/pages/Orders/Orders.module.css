@@ -1,0 +1,169 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.headling {
+  margin-bottom: 10px;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.order {
+  background-color: var(--white-color);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+.order_head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 15px;
+  border-bottom: 1px solid var(--separator-color);
+  padding-bottom: 10px;
+}
+
+.order_id_status {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.order_id {
+  font-weight: 700;
+  font-size: 18px;
+}
+
+.status {
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-weight: 600;
+  width: fit-content;
+  text-transform: uppercase;
+}
+
+.status_1 {
+  background-color: #e6f7ff;
+  color: #1890ff;
+  border: 1px solid #91d5ff;
+}
+
+.status_2 {
+  background-color: #f6ffed;
+  color: #52c41a;
+  border: 1px solid #b7eb8f;
+}
+
+.status_3 {
+  background-color: #fff7e6;
+  color: #fa8c16;
+  border: 1px solid #ffd591;
+}
+
+.status_4 {
+  background-color: #fff0f6;
+  color: #eb2f96;
+  border: 1px solid #ffadd2;
+}
+
+.status_5 {
+  background-color: #f9f0ff;
+  color: #722ed1;
+  border: 1px solid #d3adf7;
+}
+
+.status_6 {
+  background-color: #fff1f0;
+  color: #f5222d;
+  border: 1px solid #ffa39e;
+}
+
+.order_date {
+  color: var(--text-secondary-color);
+  font-size: 14px;
+}
+
+.items {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 8px;
+  transition: background-color 0.2s;
+}
+
+.item:hover {
+  background-color: var(--background-color);
+}
+
+.image {
+  width: 60px;
+  height: 60px;
+  border-radius: 8px;
+  background-size: cover;
+  background-position: center;
+  flex-shrink: 0;
+}
+
+.item_info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.item_name {
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.item_details {
+  font-size: 14px;
+  color: var(--text-secondary-color);
+}
+
+.order_footer {
+  margin-top: 15px;
+  padding-top: 10px;
+  border-top: 1px solid var(--separator-color);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 5px;
+}
+
+.delivery_fee {
+  font-size: 14px;
+  color: var(--text-secondary-color);
+}
+
+.total {
+  font-weight: 700;
+  font-size: 18px;
+  color: var(--primary-color);
+}
+
+.loading, .error, .empty {
+  text-align: center;
+  padding: 40px;
+  font-size: 18px;
+}
+
+.error {
+  color: #ff4d4f;
+}
+

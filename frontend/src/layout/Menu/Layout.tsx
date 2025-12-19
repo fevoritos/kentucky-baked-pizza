@@ -61,6 +61,17 @@ export function Layout() {
               {items.reduce((acc, i) => (acc += i.count), 0)}{' '}
             </span>
           </NavLink>
+          <NavLink
+            to="/orders"
+            className={({ isActive }) =>
+              cn(styles['link'], {
+                [styles.active]: isActive,
+              })
+            }
+          >
+            <img src="/cart-icon.svg" alt="Иконка заказов" />
+            История
+          </NavLink>
           {profile?.role === 'admin' && (
             <>
               <NavLink

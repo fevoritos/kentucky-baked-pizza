@@ -22,6 +22,7 @@ export class OrderRepository extends BaseRepository<Order> {
       id: Number(row.id),
       userId: Number(row.user_id),
       status: Number(row.status),
+      deliveryFee: parseFloat(row.delivery_fee),
       createdAt: row.created_at ? new Date(row.created_at) : undefined,
       updatedAt: row.updated_at ? new Date(row.updated_at) : undefined,
     };
@@ -31,11 +32,21 @@ export class OrderRepository extends BaseRepository<Order> {
     const row: Record<string, any> = {};
     if (entity.userId !== undefined) row.user_id = entity.userId;
     if (entity.status !== undefined) row.status = entity.status;
+    if (entity.deliveryFee !== undefined) row.delivery_fee = entity.deliveryFee;
     return row;
   }
 
-  async findByUserId(userId: number): Promise<Order[]> {
-    return this.findBy({ user_id: userId });
+  async findByUserId(userId: number): Promise<OrderWithItems[]> {
+    const query = `SELECT id FROM "order" WHERE user_id = $1 ORDER BY created_at DESC`;
+    const result = await this.databaseService.query(query, [userId]);
+    const orders: OrderWithItems[] = [];
+    for (const row of result.rows) {
+      const order = await this.findByIdWithItems(Number(row.id));
+      if (order) {
+        orders.push(order);
+      }
+    }
+    return orders;
   }
 
   async findAllWithDetails(): Promise<OrderWithItems[]> {
@@ -172,9 +183,11 @@ export class OrderRepository extends BaseRepository<Order> {
 
   async getOrderTotal(orderId: number): Promise<number> {
     const query = `
-      SELECT SUM(oi.price * oi.quantity) as total
-      FROM order_item oi
-      WHERE oi.order_id = $1
+      SELECT (COALESCE(SUM(oi.price * oi.quantity), 0) + o.delivery_fee) as total
+      FROM "order" o
+      LEFT JOIN order_item oi ON o.id = oi.order_id
+      WHERE o.id = $1
+      GROUP BY o.id, o.delivery_fee
     `;
     const result = await this.databaseService.query(query, [orderId]);
     return parseFloat(result.rows[0]?.total || '0');

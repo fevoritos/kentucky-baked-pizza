@@ -4,7 +4,6 @@ import * as bcrypt from 'bcryptjs';
 import { UserRepository } from '../repositories/user.repository';
 import { RoleRepository } from '../repositories/role.repository';
 import { RegisterDto, LoginDto, AuthResponseDto } from './dto/auth.dto';
-import { User } from '../types/database.types';
 
 @Injectable()
 export class AuthService {
@@ -86,8 +85,15 @@ export class AuthService {
     };
   }
 
-  async validateUser(userId: number): Promise<User | null> {
-    return await this.userRepository.findById(userId);
+  async validateUser(userId: number): Promise<Record<string, any> | null> {
+    const userWithRole = await this.userRepository.findByIdWithRole(userId);
+    if (!userWithRole) return null;
+
+    const { passwordHash: _unused, ...userProfile } = userWithRole;
+    return {
+      ...userProfile,
+      role: userWithRole.roleDetails.name,
+    };
   }
 
   async getProfile(userId: number): Promise<any> {
@@ -96,7 +102,7 @@ export class AuthService {
       throw new UnauthorizedException('User not found');
     }
 
-    const { passwordHash, ...userProfile } = userWithRole;
+    const { passwordHash: _unused, ...userProfile } = userWithRole;
     return {
       ...userProfile,
       role: userWithRole.roleDetails.name,

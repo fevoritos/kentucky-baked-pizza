@@ -56,12 +56,16 @@ export function AdminAssortment() {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      const ingredients =
+        typeof currentProduct.ingredients === 'string'
+          ? (currentProduct.ingredients as string).split(',').map((i) => i.trim())
+          : currentProduct.ingredients;
+
       const payload = {
-        ...currentProduct,
-        ingredients:
-          typeof currentProduct.ingredients === 'string'
-            ? (currentProduct.ingredients as string).split(',').map((i) => i.trim())
-            : currentProduct.ingredients,
+        name: currentProduct.name,
+        price: currentProduct.price,
+        image: currentProduct.image,
+        ingredients,
       };
 
       if (currentProduct.id) {
