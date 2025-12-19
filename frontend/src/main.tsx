@@ -1,6 +1,7 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import './index.css';
+import 'react-toastify/dist/ReactToastify.css';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { Menu } from './pages/Menu/Menu.tsx';
 import { Cart } from './pages/Cart/Cart.tsx';
@@ -16,6 +17,11 @@ import { RequireAuth } from './helpers/RequireAuth.tsx';
 import { Provider } from 'react-redux';
 import { store } from './store/store.ts';
 import { Success } from './pages/Success/Success.tsx';
+import { AdminAssortment } from './pages/Admin/Assortment/AdminAssortment.tsx';
+import { AdminOrders } from './pages/Admin/Orders/AdminOrders.tsx';
+import { Orders } from './pages/Orders/Orders.tsx';
+import { RequireAdmin } from './helpers/RequireAdmin.tsx';
+import { ToastContainer } from 'react-toastify';
 
 const router = createBrowserRouter([
   {
@@ -37,6 +43,26 @@ const router = createBrowserRouter([
       {
         path: '/cart',
         element: <Cart />,
+      },
+      {
+        path: '/orders',
+        element: <Orders />,
+      },
+      {
+        path: '/admin/assortment',
+        element: (
+          <RequireAdmin>
+            <AdminAssortment />
+          </RequireAdmin>
+        ),
+      },
+      {
+        path: '/admin/orders',
+        element: (
+          <RequireAdmin>
+            <AdminOrders />
+          </RequireAdmin>
+        ),
       },
       {
         path: 'product/:id',
@@ -72,6 +98,18 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <Provider store={store}>
       <RouterProvider router={router} />
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
     </Provider>
   </StrictMode>,
 );

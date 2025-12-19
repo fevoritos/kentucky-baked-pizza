@@ -31,3 +31,16 @@
 .accent {
     background: var(--primary-color);
 }
+
+@media (max-width: 900px) {
+    .big {
+        font-size: 14px;
+        padding: 16px 40px;
+        width: 100%;
+    }
+
+    .small {
+        font-size: 14px;
+        padding: 10px 20px;
+    }
+}

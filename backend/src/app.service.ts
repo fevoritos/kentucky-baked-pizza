@@ -15,9 +15,6 @@ export class AppService {
     return 'Hello World!';
   }
 
-  /**
-   * Example method to demonstrate database usage
-   */
   async getDatabaseInfo(): Promise<{
     isConnected: boolean;
     stats: any;

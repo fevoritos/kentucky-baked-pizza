@@ -19,7 +19,6 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
 
     this.pool = new Pool(config);
 
-    // Handle pool errors
     this.pool.on('error', (err) => {
       this.logger.error('Unexpected error on idle client', err);
     });
@@ -27,7 +26,6 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
 
   async onModuleInit() {
     try {
-      // Test connection
       const client = await this.pool.connect();
       await client.query('SELECT NOW()');
       client.release();
@@ -43,9 +41,6 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     this.logger.log('Database connection pool closed');
   }
 
-  /**
-   * Execute a query with parameters
-   */
   async query<T = any>(text: string, params?: any[]): Promise<CustomQueryResult<T>> {
     const start = Date.now();
     try {
@@ -71,16 +66,10 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  /**
-   * Get a client from the pool for transactions
-   */
   async getClient(): Promise<PoolClient> {
     return await this.pool.connect();
   }
 
-  /**
-   * Execute a transaction
-   */
   async transaction<T>(callback: (client: PoolClient) => Promise<T>): Promise<T> {
     const client = await this.getClient();
 
@@ -97,9 +86,6 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  /**
-   * Execute multiple queries in a transaction
-   */
   async executeTransaction(queries: Array<{ text: string; params?: any[] }>): Promise<void> {
     await this.transaction(async (client) => {
       for (const query of queries) {
@@ -108,9 +94,6 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     });
   }
 
-  /**
-   * Check if database is connected
-   */
   async isConnected(): Promise<boolean> {
     try {
       await this.query('SELECT 1');
@@ -120,9 +103,6 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  /**
-   * Get database statistics
-   */
   async getStats(): Promise<{
     totalConnections: number;
     idleConnections: number;

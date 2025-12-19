@@ -13,7 +13,6 @@ async function bootstrap() {
     credentials: true,
   });
 
-  // Enable global validation
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -22,7 +21,6 @@ async function bootstrap() {
     }),
   );
 
-  // Swagger configuration
   const config = new DocumentBuilder()
     .setTitle('Kentucky Baked Pizza API')
     .setDescription('API для системы заказа пиццы Kentucky Baked Pizza')

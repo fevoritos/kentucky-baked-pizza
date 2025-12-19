@@ -40,16 +40,10 @@ export class UserRepository extends BaseRepository<User> {
     return row;
   }
 
-  /**
-   * Find user by email
-   */
   async findByEmail(email: string): Promise<User | null> {
     return this.findOneBy({ email });
   }
 
-  /**
-   * Find user with role details
-   */
   async findByIdWithRole(id: number): Promise<UserWithRole | null> {
     const query = `
       SELECT u.*, r.id as role_id, r.name as role_name
@@ -77,9 +71,6 @@ export class UserRepository extends BaseRepository<User> {
     };
   }
 
-  /**
-   * Find all users with role details
-   */
   async findAllWithRoles(): Promise<UserWithRole[]> {
     const query = `
       SELECT u.*, r.id as role_id, r.name as role_name
@@ -104,9 +95,6 @@ export class UserRepository extends BaseRepository<User> {
     }));
   }
 
-  /**
-   * Update user password
-   */
   async updatePassword(id: number, passwordHash: string): Promise<boolean> {
     const query = `
       UPDATE "user"

@@ -6,13 +6,16 @@
     position: relative;
     min-height: 136px;
     border-radius: 19px;
+    width: 100%;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
 }
 
 .card {
     background: var(--white-color);
     border-radius: 19px;
     box-shadow: 18px 18px 36px 0 rgba(211, 209, 216, 0.25);
-    width: 320px;
 }
 
 .footer {

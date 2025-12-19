@@ -22,6 +22,9 @@ export class OrderRepository extends BaseRepository<Order> {
       id: Number(row.id),
       userId: Number(row.user_id),
       status: Number(row.status),
+      deliveryFee: parseFloat(row.delivery_fee),
+      address: String(row.address),
+      phone: String(row.phone),
       createdAt: row.created_at ? new Date(row.created_at) : undefined,
       updatedAt: row.updated_at ? new Date(row.updated_at) : undefined,
     };
@@ -31,19 +34,36 @@ export class OrderRepository extends BaseRepository<Order> {
     const row: Record<string, any> = {};
     if (entity.userId !== undefined) row.user_id = entity.userId;
     if (entity.status !== undefined) row.status = entity.status;
+    if (entity.deliveryFee !== undefined) row.delivery_fee = entity.deliveryFee;
     return row;
   }
 
-  /**
-   * Find orders by user ID
-   */
-  async findByUserId(userId: number): Promise<Order[]> {
-    return this.findBy({ user_id: userId });
+  async findByUserId(userId: number): Promise<OrderWithItems[]> {
+    const query = `SELECT id FROM "order" WHERE user_id = $1 ORDER BY created_at DESC`;
+    const result = await this.databaseService.query(query, [userId]);
+    const orders: OrderWithItems[] = [];
+    for (const row of result.rows) {
+      const order = await this.findByIdWithItems(Number(row.id));
+      if (order) {
+        orders.push(order);
+      }
+    }
+    return orders;
   }
 
-  /**
-   * Find order with items
-   */
+  async findAllWithDetails(): Promise<OrderWithItems[]> {
+    const query = `SELECT id FROM "order" ORDER BY created_at DESC`;
+    const result = await this.databaseService.query(query);
+    const orders: OrderWithItems[] = [];
+    for (const row of result.rows) {
+      const order = await this.findByIdWithItems(Number(row.id));
+      if (order) {
+        orders.push(order);
+      }
+    }
+    return orders;
+  }
+
   async findByIdWithItems(id: number): Promise<OrderWithItems | null> {
     const orderQuery = `SELECT * FROM "order" WHERE id = $1`;
     const orderResult = await this.databaseService.query(orderQuery, [id]);
@@ -52,12 +72,10 @@ export class OrderRepository extends BaseRepository<Order> {
 
     const order = this.mapRowToEntity(orderResult.rows[0]);
 
-    // Get user info
     const userQuery = `SELECT * FROM "user" WHERE id = $1`;
     const userResult = await this.databaseService.query(userQuery, [order.userId]);
     const user = userResult.rows[0];
 
-    // Get order items
     const itemsQuery = `
       SELECT oi.*, d.name as dish_name, d.price as dish_price, d.image as dish_image, d.rating as dish_rating
       FROM order_item oi
@@ -83,12 +101,7 @@ export class OrderRepository extends BaseRepository<Order> {
 
     return {
       ...order,
-      items: items.map((item) => ({
-        orderId: item.orderId,
-        dishId: item.dishId,
-        quantity: item.quantity,
-        price: item.price,
-      })),
+      items: items,
       user: {
         id: user.id,
         email: user.email,
@@ -101,16 +114,12 @@ export class OrderRepository extends BaseRepository<Order> {
     };
   }
 
-  /**
-   * Create order with items
-   */
   async createWithItems(
     userId: number,
     items: Array<{ dishId: number; quantity: number }>,
-    statusId: number = 1, // Default to 'pending'
+    statusId: number = 1,
   ): Promise<OrderWithItems> {
     return await this.databaseService.transaction(async (client) => {
-      // Get dish prices
       const dishIds = items.map((item) => item.dishId);
       const dishQuery = `SELECT id, price FROM dish WHERE id = ANY($1::int[])`;
       const dishResult = await client.query(dishQuery, [dishIds]);
@@ -118,12 +127,10 @@ export class OrderRepository extends BaseRepository<Order> {
         dishResult.rows.map((row: any) => [Number(row.id), parseFloat(row.price)]),
       );
 
-      // Create order
       const orderQuery = `INSERT INTO "order" (user_id, status) VALUES ($1, $2) RETURNING *`;
       const orderResult = await client.query(orderQuery, [userId, statusId]);
       const order = this.mapRowToEntity(orderResult.rows[0]);
 
-      // Create order items
       for (const item of items) {
         const price = dishPrices.get(item.dishId) || 0;
         const itemQuery = `
@@ -133,7 +140,6 @@ export class OrderRepository extends BaseRepository<Order> {
         await client.query(itemQuery, [order.id, item.dishId, item.quantity, price]);
       }
 
-      // Return order with items
       const orderWithItems = await this.findByIdWithItems(order.id);
       if (!orderWithItems) {
         throw new Error('Failed to create order with items');
@@ -142,11 +148,7 @@ export class OrderRepository extends BaseRepository<Order> {
     });
   }
 
-  /**
-   * Add item to order
-   */
   async addItem(orderId: number, dishId: number, quantity: number): Promise<boolean> {
-    // Get dish price
     const dishQuery = `SELECT price FROM dish WHERE id = $1`;
     const dishResult = await this.databaseService.query(dishQuery, [dishId]);
     if (dishResult.rows.length === 0) return false;
@@ -162,9 +164,6 @@ export class OrderRepository extends BaseRepository<Order> {
     return result.rowCount > 0;
   }
 
-  /**
-   * Remove item from order
-   */
   async removeItem(orderId: number, dishId: number): Promise<boolean> {
     const query = `
       DELETE FROM order_item
@@ -174,9 +173,6 @@ export class OrderRepository extends BaseRepository<Order> {
     return result.rowCount > 0;
   }
 
-  /**
-   * Update item quantity in order
-   */
   async updateItemQuantity(orderId: number, dishId: number, quantity: number): Promise<boolean> {
     const query = `
       UPDATE order_item
@@ -187,22 +183,18 @@ export class OrderRepository extends BaseRepository<Order> {
     return result.rowCount > 0;
   }
 
-  /**
-   * Get order total
-   */
   async getOrderTotal(orderId: number): Promise<number> {
     const query = `
-      SELECT SUM(oi.price * oi.quantity) as total
-      FROM order_item oi
-      WHERE oi.order_id = $1
+      SELECT (COALESCE(SUM(oi.price * oi.quantity), 0) + o.delivery_fee) as total
+      FROM "order" o
+      LEFT JOIN order_item oi ON o.id = oi.order_id
+      WHERE o.id = $1
+      GROUP BY o.id, o.delivery_fee
     `;
     const result = await this.databaseService.query(query, [orderId]);
     return parseFloat(result.rows[0]?.total || '0');
   }
 
-  /**
-   * Update order status
-   */
   async updateStatus(orderId: number, statusId: number): Promise<boolean> {
     const query = `
       UPDATE "order"
@@ -211,5 +203,16 @@ export class OrderRepository extends BaseRepository<Order> {
     `;
     const result = await this.databaseService.query(query, [statusId, orderId]);
     return result.rowCount > 0;
+  }
+
+  async hasUserOrderedDish(userId: number, dishId: number): Promise<boolean> {
+    const query = `
+      SELECT 1 FROM "order" o
+      JOIN order_item oi ON o.id = oi.order_id
+      WHERE o.user_id = $1 AND oi.dish_id = $2
+      LIMIT 1
+    `;
+    const result = await this.databaseService.query(query, [userId, dishId]);
+    return result.rows.length > 0;
   }
 }

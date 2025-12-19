@@ -30,16 +30,10 @@ export class CartRepository extends BaseRepository<Cart> {
     return row;
   }
 
-  /**
-   * Find cart by user ID
-   */
   async findByUserId(userId: number): Promise<Cart | null> {
     return this.findOneBy({ user_id: userId });
   }
 
-  /**
-   * Find or create cart for user
-   */
   async findOrCreateByUserId(userId: number): Promise<Cart> {
     let cart = await this.findByUserId(userId);
 
@@ -50,9 +44,6 @@ export class CartRepository extends BaseRepository<Cart> {
     return cart;
   }
 
-  /**
-   * Find cart with items
-   */
   async findByIdWithItems(id: number): Promise<CartWithItems | null> {
     const cartQuery = `SELECT * FROM cart WHERE id = $1`;
     const cartResult = await this.databaseService.query(cartQuery, [id]);
@@ -61,12 +52,10 @@ export class CartRepository extends BaseRepository<Cart> {
 
     const cart = this.mapRowToEntity(cartResult.rows[0] as Record<string, any>);
 
-    // Get user info
     const userQuery = `SELECT * FROM "user" WHERE id = $1`;
     const userResult = await this.databaseService.query(userQuery, [cart.userId]);
     const user = userResult.rows[0] as Record<string, any>;
 
-    // Get cart items
     const itemsQuery = `
       SELECT ci.*, d.name as dish_name, d.price as dish_price, d.image as dish_image, d.rating as dish_rating
       FROM cart_item ci
@@ -91,11 +80,7 @@ export class CartRepository extends BaseRepository<Cart> {
 
     return {
       ...cart,
-      items: items.map((item) => ({
-        cartId: item.cartId,
-        dishId: item.dishId,
-        quantity: item.quantity,
-      })),
+      items: items,
       user: {
         id: Number(user.id),
         email: String(user.email),
@@ -108,9 +93,6 @@ export class CartRepository extends BaseRepository<Cart> {
     };
   }
 
-  /**
-   * Add item to cart
-   */
   async addItem(cartId: number, dishId: number, quantity: number): Promise<boolean> {
     const query = `
       INSERT INTO cart_item (cart_id, dish_id, quantity)
@@ -122,9 +104,6 @@ export class CartRepository extends BaseRepository<Cart> {
     return result.rowCount > 0;
   }
 
-  /**
-   * Remove item from cart
-   */
   async removeItem(cartId: number, dishId: number): Promise<boolean> {
     const query = `
       DELETE FROM cart_item
@@ -134,9 +113,6 @@ export class CartRepository extends BaseRepository<Cart> {
     return result.rowCount > 0;
   }
 
-  /**
-   * Update item quantity in cart
-   */
   async updateItemQuantity(cartId: number, dishId: number, quantity: number): Promise<boolean> {
     if (quantity <= 0) {
       return this.removeItem(cartId, dishId);
@@ -151,18 +127,12 @@ export class CartRepository extends BaseRepository<Cart> {
     return result.rowCount > 0;
   }
 
-  /**
-   * Clear cart
-   */
   async clearCart(cartId: number): Promise<boolean> {
     const query = `DELETE FROM cart_item WHERE cart_id = $1`;
     const result = await this.databaseService.query(query, [cartId]);
     return result.rowCount >= 0; // Always return true, even if cart was already empty
   }
 
-  /**
-   * Get cart total
-   */
   async getCartTotal(cartId: number): Promise<number> {
     const query = `
       SELECT SUM(d.price * ci.quantity) as total
@@ -174,9 +144,6 @@ export class CartRepository extends BaseRepository<Cart> {
     return Number((result.rows[0] as Record<string, any>)?.total || '0');
   }
 
-  /**
-   * Get cart item count
-   */
   async getCartItemCount(cartId: number): Promise<number> {
     const query = `
       SELECT SUM(quantity) as total_items
@@ -187,12 +154,8 @@ export class CartRepository extends BaseRepository<Cart> {
     return Number((result.rows[0] as Record<string, any>)?.total_items || '0');
   }
 
-  /**
-   * Convert cart to order
-   */
-  async convertToOrder(cartId: number): Promise<number | null> {
+  async convertToOrder(cartId: number, address: string, phone: string): Promise<number | null> {
     return await this.databaseService.transaction(async (client) => {
-      // Get cart with items
       const cartQuery = `SELECT * FROM cart WHERE id = $1`;
       const cartResult = await client.query(cartQuery, [cartId]);
 
@@ -200,13 +163,11 @@ export class CartRepository extends BaseRepository<Cart> {
 
       const cart = this.mapRowToEntity(cartResult.rows[0] as Record<string, any>);
 
-      // Get cart items
       const itemsQuery = `SELECT * FROM cart_item WHERE cart_id = $1`;
       const itemsResult = await client.query(itemsQuery, [cartId]);
 
       if (itemsResult.rows.length === 0) return null;
 
-      // Get dish prices
       const dishIds = itemsResult.rows.map((item: any) => Number(item.dish_id));
       const dishQuery = `SELECT id, price FROM dish WHERE id = ANY($1::int[])`;
       const dishResult = await client.query(dishQuery, [dishIds]);
@@ -214,12 +175,10 @@ export class CartRepository extends BaseRepository<Cart> {
         dishResult.rows.map((row: any) => [Number(row.id), parseFloat(row.price)]),
       );
 
-      // Create order with default status (pending = 1)
-      const orderQuery = `INSERT INTO "order" (user_id, status) VALUES ($1, $2) RETURNING id`;
-      const orderResult = await client.query(orderQuery, [cart.userId, 1]);
+      const orderQuery = `INSERT INTO "order" (user_id, status, address, phone) VALUES ($1, $2, $3, $4) RETURNING id`;
+      const orderResult = await client.query(orderQuery, [cart.userId, 1, address, phone]);
       const orderId = Number((orderResult.rows[0] as Record<string, any>).id);
 
-      // Move items from cart to order
       for (const item of itemsResult.rows) {
         const dishId = Number((item as Record<string, any>).dish_id);
         const quantity = Number((item as Record<string, any>).quantity);
@@ -231,7 +190,6 @@ export class CartRepository extends BaseRepository<Cart> {
         await client.query(orderItemQuery, [orderId, dishId, quantity, price]);
       }
 
-      // Clear cart
       await client.query(`DELETE FROM cart_item WHERE cart_id = $1`, [cartId]);
 
       return orderId;

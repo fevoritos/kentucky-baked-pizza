@@ -10,9 +10,6 @@ import { User } from '../types/database.types';
 export class AuthController {
   constructor(private readonly authService: AuthService) { }
 
-  /**
-   * Register a new user
-   */
   @Post('register')
   @ApiOperation({ summary: 'Регистрация нового пользователя' })
   @ApiBody({ type: RegisterDto })
@@ -27,9 +24,6 @@ export class AuthController {
     return this.authService.register(registerDto);
   }
 
-  /**
-   * Login user
-   */
   @Post('login')
   @ApiOperation({ summary: 'Вход в систему' })
   @ApiBody({ type: LoginDto })
@@ -43,9 +37,6 @@ export class AuthController {
     return this.authService.login(loginDto);
   }
 
-  /**
-   * Get current user profile (protected route)
-   */
   @UseGuards(AuthGuard('jwt'))
   @Get('profile')
   @ApiBearerAuth('JWT-auth')
@@ -70,9 +61,6 @@ export class AuthController {
     return this.authService.getProfile(req.user.id);
   }
 
-  /**
-   * Test protected route
-   */
   @UseGuards(AuthGuard('jwt'))
   @Get('test')
   @ApiBearerAuth('JWT-auth')

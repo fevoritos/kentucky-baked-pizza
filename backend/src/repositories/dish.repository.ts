@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { BaseRepository } from './base.repository';
 import { DatabaseService } from '../database/database.service';
-import { Dish } from '../types/database.types';
+import { Dish, DishWithIngredientNames } from '../types/database.types';
 
 @Injectable()
 export class DishRepository extends BaseRepository<Dish> {
@@ -36,9 +36,6 @@ export class DishRepository extends BaseRepository<Dish> {
     return row;
   }
 
-  /**
-   * Find dishes by name (case insensitive)
-   */
   async findByName(name: string): Promise<Dish[]> {
     const query = `
       SELECT * FROM dish 
@@ -49,9 +46,6 @@ export class DishRepository extends BaseRepository<Dish> {
     return result.rows.map((row) => this.mapRowToEntity(row as Record<string, any>));
   }
 
-  /**
-   * Find dishes by price range
-   */
   async findByPriceRange(minPrice: number, maxPrice: number): Promise<Dish[]> {
     const query = `
       SELECT * FROM dish 
@@ -62,9 +56,6 @@ export class DishRepository extends BaseRepository<Dish> {
     return result.rows.map((row) => this.mapRowToEntity(row as Record<string, any>));
   }
 
-  /**
-   * Find dishes by rating
-   */
   async findByMinRating(minRating: number): Promise<Dish[]> {
     const query = `
       SELECT * FROM dish 
@@ -75,9 +66,6 @@ export class DishRepository extends BaseRepository<Dish> {
     return result.rows.map((row) => this.mapRowToEntity(row as Record<string, any>));
   }
 
-  /**
-   * Add ingredient to dish
-   */
   async addIngredient(dishId: number, ingredientId: number): Promise<boolean> {
     const query = `
       INSERT INTO dish_ingredient (dish_id, ingredient_id)
@@ -88,9 +76,6 @@ export class DishRepository extends BaseRepository<Dish> {
     return result.rowCount > 0;
   }
 
-  /**
-   * Remove ingredient from dish
-   */
   async removeIngredient(dishId: number, ingredientId: number): Promise<boolean> {
     const query = `
       DELETE FROM dish_ingredient
@@ -100,9 +85,6 @@ export class DishRepository extends BaseRepository<Dish> {
     return result.rowCount > 0;
   }
 
-  /**
-   * Update dish rating
-   */
   async updateRating(id: number, rating: number): Promise<boolean> {
     const query = `
       UPDATE dish
@@ -113,10 +95,7 @@ export class DishRepository extends BaseRepository<Dish> {
     return result.rowCount > 0;
   }
 
-  /**
-   * Find all dishes with ingredients
-   */
-  async findAllWithIngredients(): Promise<any[]> {
+  async findAllWithIngredients(): Promise<DishWithIngredientNames[]> {
     const query = `
       SELECT 
         d.id,
@@ -146,10 +125,7 @@ export class DishRepository extends BaseRepository<Dish> {
     }));
   }
 
-  /**
-   * Find dish by ID with ingredients
-   */
-  async findByIdWithIngredients(id: number): Promise<any> {
+  async findByIdWithIngredients(id: number): Promise<DishWithIngredientNames | null> {
     const query = `
       SELECT 
         d.id,
@@ -182,10 +158,7 @@ export class DishRepository extends BaseRepository<Dish> {
     };
   }
 
-  /**
-   * Search dishes by name or ingredients
-   */
-  async searchDishes(searchTerm: string): Promise<any[]> {
+  async searchDishes(searchTerm: string): Promise<DishWithIngredientNames[]> {
     const searchWords = searchTerm.split(/\s+/).filter((word) => word.length > 0);
 
     if (searchWords.length === 0) {

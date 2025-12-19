@@ -1,0 +1,108 @@
+.card {
+    background: var(--white-color);
+    border-radius: 19px;
+    box-shadow: 18px 18px 36px 0 rgba(211, 209, 216, 0.25);
+    width: 320px;
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+.head {
+    position: relative;
+    min-height: 136px;
+    border-radius: 19px;
+    width: 100%;
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+}
+
+.footer {
+    padding: 20px;
+}
+
+.title {
+    height: 20px;
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    width: 70%;
+}
+
+.description {
+    height: 14px;
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 4px;
+    margin-bottom: 8px;
+    width: 100%;
+}
+
+.description:last-child {
+    width: 60%;
+    margin-bottom: 0;
+}
+
+.price {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    width: 60px;
+    height: 25px;
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 20px;
+}
+
+.rating {
+    position: absolute;
+    bottom: -12px;
+    left: 15px;
+    width: 50px;
+    height: 20px;
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 20px;
+}
+
+.add-to-cart {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: -200% 0;
+    }
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.8;
+    }
+}
+
+@media (max-width: 900px) {
+    .card {
+        width: 100%;
+        max-width: 100%;
+    }
+}
+

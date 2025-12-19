@@ -47,4 +47,31 @@
     color: white;
     padding: 20px;
     background-color: #FFC529;
+    border-radius: 10px;
+    font-size: 14px;
+}
+
+/* Mobile styles */
+@media (max-width: 900px) {
+    .login {
+        gap: 20px;
+        max-width: 100%;
+    }
+
+    .form {
+        gap: 20px;
+    }
+
+    .field label {
+        font-size: 16px;
+    }
+
+    .links {
+        font-size: 13px;
+    }
+
+    .error {
+        padding: 15px;
+        font-size: 13px;
+    }
 }

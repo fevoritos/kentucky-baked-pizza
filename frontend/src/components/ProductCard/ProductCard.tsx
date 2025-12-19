@@ -5,13 +5,19 @@ import type { MouseEvent } from 'react';
 import { useDispatch } from 'react-redux';
 import type { AppDispatch } from '../../store/store';
 import { cartActions } from '../../store/cart.slice';
+import { toast } from 'react-toastify';
 
 function ProductCard(props: ProductCardProps) {
   const dispatch = useDispatch<AppDispatch>();
 
-  const add = (e: MouseEvent) => {
+  const add = async (e: MouseEvent) => {
     e.preventDefault();
-    dispatch(cartActions.add(props.id));
+    try {
+      await dispatch(cartActions.addToCart({ dishId: props.id, quantity: 1 })).unwrap();
+      toast.success('Товар добавлен в корзину!');
+    } catch {
+      toast.error('Не удалось добавить товар в корзину');
+    }
   };
 
   return (

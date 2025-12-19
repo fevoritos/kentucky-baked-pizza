@@ -15,3 +15,28 @@
     font-weight: 300;
     line-height: 120%;
 }
+
+.success img {
+    max-width: 100%;
+    height: auto;
+}
+
+/* Mobile styles */
+@media (max-width: 900px) {
+    .success {
+        gap: 20px;
+        padding: 20px;
+        min-height: 60vh;
+    }
+
+    .success img {
+        max-width: 250px;
+        max-height: 250px;
+    }
+
+    .text {
+        font-size: 24px;
+        margin-top: -40px;
+        padding: 0 20px;
+    }
+}

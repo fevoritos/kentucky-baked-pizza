@@ -14,12 +14,11 @@ export class FeedbackRepository extends BaseRepository<Feedback> {
   }
 
   protected getPrimaryKey(): string {
-    return 'id';
+    return 'user_id'; // Or some other column, but BaseRepository methods won't be fully compatible
   }
 
   protected mapRowToEntity(row: Record<string, any>): Feedback {
     return {
-      id: Number(row.id),
       value: Number(row.value),
       userId: Number(row.user_id),
       dishId: Number(row.dish_id),
@@ -35,44 +34,31 @@ export class FeedbackRepository extends BaseRepository<Feedback> {
     return row;
   }
 
-  /**
-   * Find feedback by user ID
-   */
   async findByUserId(userId: number): Promise<Feedback[]> {
     return this.findBy({ user_id: userId });
   }
 
-  /**
-   * Find feedback by dish ID
-   */
   async findByDishId(dishId: number): Promise<Feedback[]> {
     return this.findBy({ dish_id: dishId });
   }
 
-  /**
-   * Find feedback by user and dish
-   */
   async findByUserAndDish(userId: number, dishId: number): Promise<Feedback | null> {
     return this.findOneBy({ user_id: userId, dish_id: dishId });
   }
 
-  /**
-   * Find feedback with user details
-   */
-  async findByIdWithUser(id: number): Promise<FeedbackWithUser | null> {
+  async findByIdWithUser(userId: number, dishId: number): Promise<FeedbackWithUser | null> {
     const query = `
       SELECT f.*, u.id as user_id, u.email, u.name as user_name, u.address, u.phone, u.role
       FROM feedback f
       JOIN "user" u ON f.user_id = u.id
-      WHERE f.id = $1
+      WHERE f.user_id = $1 AND f.dish_id = $2
     `;
-    const result = await this.databaseService.query(query, [id]);
+    const result = await this.databaseService.query(query, [userId, dishId]);
 
     if (result.rows.length === 0) return null;
 
     const row = result.rows[0] as Record<string, any>;
     return {
-      id: Number(row.id),
       value: Number(row.value),
       userId: Number(row.user_id),
       dishId: Number(row.dish_id),
@@ -89,23 +75,19 @@ export class FeedbackRepository extends BaseRepository<Feedback> {
     };
   }
 
-  /**
-   * Find feedback with dish details
-   */
-  async findByIdWithDish(id: number): Promise<FeedbackWithDish | null> {
+  async findByIdWithDish(userId: number, dishId: number): Promise<FeedbackWithDish | null> {
     const query = `
       SELECT f.*, d.id as dish_id, d.name as dish_name, d.price, d.image, d.rating
       FROM feedback f
       JOIN dish d ON f.dish_id = d.id
-      WHERE f.id = $1
+      WHERE f.user_id = $1 AND f.dish_id = $2
     `;
-    const result = await this.databaseService.query(query, [id]);
+    const result = await this.databaseService.query(query, [userId, dishId]);
 
     if (result.rows.length === 0) return null;
 
     const row = result.rows[0] as Record<string, any>;
     return {
-      id: Number(row.id),
       value: Number(row.value),
       userId: Number(row.user_id),
       dishId: Number(row.dish_id),
@@ -120,9 +102,6 @@ export class FeedbackRepository extends BaseRepository<Feedback> {
     };
   }
 
-  /**
-   * Create or update feedback
-   */
   async upsert(feedback: Partial<Feedback>): Promise<Feedback> {
     const query = `
       INSERT INTO feedback (user_id, dish_id, value)
