@@ -16,6 +16,6 @@ export default defineConfig({
     host: '0.0.0.0',
     port: parseInt(process.env.PORT || '4173'),
     // Allow all hosts for Railway deployment
-    allowedHosts: ['all'],
+    allowedHosts: true,
   },
 });
