@@ -18,7 +18,10 @@
 
 .success img {
     max-width: 100%;
-    height: auto;
+    width: 400px;
+    height: 400px;
+    object-fit: contain;
+    display: block;
 }
 
 /* Mobile styles */
@@ -30,6 +33,8 @@
     }
 
     .success img {
+        width: 250px;
+        height: 250px;
         max-width: 250px;
         max-height: 250px;
     }

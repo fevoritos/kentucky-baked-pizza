@@ -15,6 +15,7 @@ export interface CartState {
   backendCart: ICart | null;
   loading: boolean;
   error: string | null;
+  updatingItems: { [dishId: number]: boolean };
 }
 
 const initialState: CartState = {
@@ -22,6 +23,7 @@ const initialState: CartState = {
   backendCart: null,
   loading: false,
   error: null,
+  updatingItems: {},
 };
 
 export const fetchCart = createAsyncThunk<ICart, void, { state: RootState }>(
@@ -89,21 +91,48 @@ export const cartSlice = createSlice({
     reset: (state) => {
       state.backendCart = null;
       state.items = [];
+      state.updatingItems = {};
     },
   },
   extraReducers: (builder) => {
     builder
+      .addCase(fetchCart.pending, (state) => {
+        state.loading = true;
+      })
       .addCase(fetchCart.fulfilled, (state, action) => {
+        state.loading = false;
         state.backendCart = action.payload;
         state.items = action.payload.items.map((i) => ({ id: i.dishId, count: i.quantity }));
+      })
+      .addCase(fetchCart.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message || 'Failed to fetch cart';
+      })
+      .addCase(addToCart.pending, (state) => {
+        state.loading = true;
       })
       .addCase(addToCart.fulfilled, (state, action) => {
+        state.loading = false;
         state.backendCart = action.payload;
         state.items = action.payload.items.map((i) => ({ id: i.dishId, count: i.quantity }));
       })
+      .addCase(addToCart.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message || 'Failed to add to cart';
+      })
+      .addCase(updateCartQuantity.pending, (state, action) => {
+        state.updatingItems[action.meta.arg.dishId] = true;
+      })
       .addCase(updateCartQuantity.fulfilled, (state, action) => {
+        const dishId = action.meta.arg.dishId;
+        delete state.updatingItems[dishId];
         state.backendCart = action.payload;
         state.items = action.payload.items.map((i) => ({ id: i.dishId, count: i.quantity }));
+      })
+      .addCase(updateCartQuantity.rejected, (state, action) => {
+        const dishId = action.meta.arg.dishId;
+        delete state.updatingItems[dishId];
+        state.error = action.error.message || 'Failed to update cart quantity';
       })
       .addCase(removeFromCart.fulfilled, (state, action) => {
         state.backendCart = action.payload;
@@ -116,6 +145,7 @@ export const cartSlice = createSlice({
       .addCase(userActions.logout, (state) => {
         state.backendCart = null;
         state.items = [];
+        state.updatingItems = {};
       });
   },
 });

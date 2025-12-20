@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import Headling from '../../../components/Headling/Headling';
+import { Loading } from '../../../components/Loading/Loading';
 import { PREFIX } from '../../../helpers/API';
 import type { IProduct } from '../../../interfaces/product.interface';
 import axios from 'axios';
@@ -13,6 +14,7 @@ export function AdminAssortment() {
   const [isLoading, setIsloading] = useState<boolean>(false);
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [currentProduct, setCurrentProduct] = useState<Partial<IProduct>>({});
+  const [isSaving, setIsSaving] = useState<boolean>(false);
   const jwt = useSelector((s: RootState) => s.user.jwt);
 
   useEffect(() => {
@@ -66,6 +68,7 @@ export function AdminAssortment() {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSaving(true);
     try {
       const ingredients =
         typeof currentProduct.ingredients === 'string'
@@ -92,6 +95,8 @@ export function AdminAssortment() {
       getProducts();
     } catch (e) {
       console.error(e);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -145,8 +150,10 @@ export function AdminAssortment() {
               required
             />
             <div className={styles['actions']}>
-              <Button type="submit">Сохранить</Button>
-              <Button appearance="big" onClick={() => setIsEditing(false)}>
+              <Button type="submit" loading={isSaving}>
+                Сохранить
+              </Button>
+              <Button appearance="big" onClick={() => setIsEditing(false)} disabled={isSaving}>
                 Отмена
               </Button>
             </div>
@@ -155,26 +162,31 @@ export function AdminAssortment() {
       )}
 
       <div className={styles['list']}>
-        {isLoading && <div>Загрузка...</div>}
-        {products.map((p) => (
-          <div key={p.id} className={styles['item']}>
-            <img
-              src={p.image}
-              alt={p.name}
-              className={p.image ? styles['img'] : styles['no-img']}
-            />
-            <div className={styles['info']}>
-              <div className={styles['title']}>{p.name}</div>
-              <div className={styles['price']}>{p.price} ₽</div>
-            </div>
-            <div className={styles['item-actions']}>
-              <button onClick={() => handleEdit(p)}>Редактировать</button>
-              <button onClick={() => handleDelete(p.id)} className={styles['delete']}>
-                Удалить
-              </button>
-            </div>
-          </div>
-        ))}
+        {isLoading ? (
+          <Loading text="Загрузка ассортимента..." />
+        ) : (
+          <>
+            {products.map((p) => (
+              <div key={p.id} className={styles['item']}>
+                <img
+                  src={p.image}
+                  alt={p.name}
+                  className={p.image ? styles['img'] : styles['no-img']}
+                />
+                <div className={styles['info']}>
+                  <div className={styles['title']}>{p.name}</div>
+                  <div className={styles['price']}>{p.price} ₽</div>
+                </div>
+                <div className={styles['item-actions']}>
+                  <button onClick={() => handleEdit(p)}>Редактировать</button>
+                  <button onClick={() => handleDelete(p.id)} className={styles['delete']}>
+                    Удалить
+                  </button>
+                </div>
+              </div>
+            ))}
+          </>
+        )}
       </div>
     </>
   );

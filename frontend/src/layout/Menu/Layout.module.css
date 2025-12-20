@@ -50,6 +50,7 @@
 
 .user {
     margin-bottom: 46px;
+    min-width: 0;
 }
 
 .avatar {
@@ -63,12 +64,20 @@
     font-style: normal;
     line-height: normal;
     color: var(--text-color);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
 }
 
 .email {
     font-weight: 400;
     font-size: 14px;
     color: #9ea1b1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
 }
 
 .menu {

@@ -17,10 +17,14 @@ export interface UserState {
   loginErrorMessage?: string | undefined;
   registerErrorMessage?: string | undefined;
   profile?: Profile;
+  loginLoading: boolean;
+  registerLoading: boolean;
 }
 
 const initialState: UserState = {
   jwt: loadState<UserPersistentState>(JWT_PERSISTENT_STATE)?.jwt ?? null,
+  loginLoading: false,
+  registerLoading: false,
 };
 
 export const login = createAsyncThunk(
@@ -86,27 +90,40 @@ export const userSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    builder.addCase(login.fulfilled, (state, action) => {
-      if (!action.payload) {
-        return;
-      }
-      state.jwt = action.payload.access_token;
-    });
-    builder.addCase(login.rejected, (state, action) => {
-      state.loginErrorMessage = action.error.message;
-    });
-    builder.addCase(register.fulfilled, (state, action) => {
-      if (!action.payload) {
-        return;
-      }
-      state.jwt = action.payload.access_token;
-    });
-    builder.addCase(register.rejected, (state, action) => {
-      state.registerErrorMessage = action.error.message;
-    });
-    builder.addCase(getProfile.fulfilled, (state, action) => {
-      state.profile = action.payload;
-    });
+    builder
+      .addCase(login.pending, (state) => {
+        state.loginLoading = true;
+        state.loginErrorMessage = undefined;
+      })
+      .addCase(login.fulfilled, (state, action) => {
+        state.loginLoading = false;
+        if (!action.payload) {
+          return;
+        }
+        state.jwt = action.payload.access_token;
+      })
+      .addCase(login.rejected, (state, action) => {
+        state.loginLoading = false;
+        state.loginErrorMessage = action.error.message;
+      })
+      .addCase(register.pending, (state) => {
+        state.registerLoading = true;
+        state.registerErrorMessage = undefined;
+      })
+      .addCase(register.fulfilled, (state, action) => {
+        state.registerLoading = false;
+        if (!action.payload) {
+          return;
+        }
+        state.jwt = action.payload.access_token;
+      })
+      .addCase(register.rejected, (state, action) => {
+        state.registerLoading = false;
+        state.registerErrorMessage = action.error.message;
+      })
+      .addCase(getProfile.fulfilled, (state, action) => {
+        state.profile = action.payload;
+      });
   },
 });
 

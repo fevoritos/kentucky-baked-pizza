@@ -15,6 +15,7 @@ const DELIVERY_FEE = 169;
 
 function CartReceipt() {
   const backendCart = useSelector((s: RootState) => s.cart.backendCart);
+  const checkoutLoading = useSelector((s: RootState) => s.orders.loading);
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
 
@@ -131,7 +132,7 @@ function CartReceipt() {
         </div>
       </div>
       <div className={styles['checkout']}>
-        <Button appearance="big" onClick={onCheckout}>
+        <Button appearance="big" onClick={onCheckout} loading={checkoutLoading}>
           Оформить
         </Button>
       </div>

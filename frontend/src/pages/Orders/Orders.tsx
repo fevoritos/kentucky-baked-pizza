@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Headling from '../../components/Headling/Headling';
+import { Loading } from '../../components/Loading/Loading';
 import type { AppDispatch, RootState } from '../../store/store';
 import { fetchOrders } from '../../store/orders.slice';
 import styles from './Orders.module.css';
@@ -27,7 +28,7 @@ export function Orders() {
   }, [dispatch]);
 
   if (loading && orders.length === 0) {
-    return <div className={styles['loading']}>Загрузка заказов...</div>;
+    return <Loading text="Загрузка заказов..." />;
   }
 
   if (error) {

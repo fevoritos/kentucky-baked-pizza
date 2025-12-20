@@ -51,8 +51,13 @@
     cursor: pointer;
 }
 
-.minus:hover {
+.minus:hover:not(:disabled) {
     border: 1px solid var(--primary-hover-color);
+}
+
+.minus:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 }
 
 .plus {
@@ -67,9 +72,14 @@
     cursor: pointer;
 }
 
-.plus:hover {
+.plus:hover:not(:disabled) {
     border: 1px solid var(--primary-hover-color);
     background: var(--primary-hover-color);
+}
+
+.plus:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 }
 
 .remove {
@@ -84,9 +94,14 @@
     cursor: pointer;
 }
 
-.remove:hover {
+.remove:hover:not(:disabled) {
     border: 1px solid var(--primary-hover-color);
     border-radius: 50%;
+}
+
+.remove:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 }
 
 .number {

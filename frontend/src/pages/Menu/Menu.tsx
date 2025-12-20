@@ -72,12 +72,43 @@ export function Menu() {
     <>
       <div className={styles['head']}>
         <Headling className={styles['mobileHidden']}>Меню</Headling>
-        <Search placeholder="Введите блюдо или состав" onChange={updateFilter} />
+        <Search
+          placeholder="Введите блюдо или состав"
+          value={searchValue}
+          onChange={updateFilter}
+        />
       </div>
       <div>
         {error && <>{error}</>}
         <MenuList products={products} isLoading={isLoading} />
-        {!isLoading && products.length === 0 && !error && <>Не найдено блюд по запросу</>}
+        {!isLoading && products.length === 0 && !error && (
+          <div className={styles['empty']}>
+            <div className={styles['emptyIcon']}>
+              <svg
+                width="120"
+                height="120"
+                viewBox="0 0 120 120"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <circle cx="60" cy="60" r="60" fill="#FFF4E5" />
+                <circle cx="50" cy="50" r="20" stroke="#FFA726" strokeWidth="4" fill="none" />
+                <path d="M65 65L80 80" stroke="#FFA726" strokeWidth="4" strokeLinecap="round" />
+              </svg>
+            </div>
+            <p className={styles['emptyText']}>Ничего не найдено</p>
+            <p className={styles['emptySubtext']}>
+              {searchValue.trim()
+                ? `По запросу "${searchValue.trim()}" блюд не найдено. Попробуйте изменить параметры поиска.`
+                : 'Попробуйте изменить параметры поиска'}
+            </p>
+            {searchValue.trim() && (
+              <button className={styles['clearButton']} onClick={() => setSearchValue('')}>
+                Очистить поиск
+              </button>
+            )}
+          </div>
+        )}
       </div>
     </>
   );

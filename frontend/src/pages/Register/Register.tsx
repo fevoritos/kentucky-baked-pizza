@@ -24,7 +24,11 @@ export type RegisterForm = {
 export function Register() {
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
-  const { jwt, registerErrorMessage: error } = useSelector((s: RootState) => s.user);
+  const {
+    jwt,
+    registerErrorMessage: error,
+    registerLoading,
+  } = useSelector((s: RootState) => s.user);
 
   useEffect(() => {
     if (jwt) {
@@ -57,7 +61,9 @@ export function Register() {
           <label htmlFor="email">Ваше имя</label>
           <Input id="name" name="name" placeholder="Имя"></Input>
         </div>
-        <Button appearance="big">Зарегистрироваться</Button>
+        <Button appearance="big" loading={registerLoading}>
+          Зарегистрироваться
+        </Button>
       </form>
       <div className={styles['links']}>
         <div>Есть акканут?</div>

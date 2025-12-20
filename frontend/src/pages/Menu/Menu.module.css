@@ -10,6 +10,56 @@
     display: block;
 }
 
+.empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 400px;
+    text-align: center;
+    padding: 40px 20px;
+}
+
+.emptyIcon {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.emptyText {
+    font-weight: 600;
+    font-size: 24px;
+    color: var(--text-color);
+    margin: 0 0 10px 0;
+}
+
+.emptySubtext {
+    font-weight: 400;
+    font-size: 16px;
+    color: var(--text-secondary-color);
+    margin: 0 0 20px 0;
+    max-width: 500px;
+    line-height: 150%;
+}
+
+.clearButton {
+    background: transparent;
+    border: 1px solid var(--primary-color);
+    color: var(--primary-color);
+    padding: 10px 25px;
+    border-radius: 29px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.25s;
+    font-family: inherit;
+}
+
+.clearButton:hover {
+    background: var(--primary-color);
+    color: var(--white-color);
+}
+
 @media (max-width: 900px) {
     .mobileHidden {
         display: none;
@@ -20,5 +70,33 @@
         align-items: stretch;
         gap: 15px;
         margin-bottom: 15px;
+    }
+
+    .empty {
+        min-height: 300px;
+        padding: 30px 20px;
+    }
+
+    .emptyIcon {
+        margin-bottom: 20px;
+    }
+
+    .emptyIcon svg {
+        width: 100px;
+        height: 100px;
+    }
+
+    .emptyText {
+        font-size: 20px;
+    }
+
+    .emptySubtext {
+        font-size: 14px;
+        padding: 0 10px;
+    }
+
+    .clearButton {
+        width: 100%;
+        max-width: 300px;
     }
 }
