@@ -10,18 +10,8 @@
     gap: 20px;
     flex: 1;
     cursor: pointer;
-    transition: opacity 0.2s;
 }
 
-.clickable-area:hover {
-    opacity: 0.8;
-}
-
-.clickable-area:focus {
-    outline: 2px solid var(--primary-color);
-    outline-offset: 2px;
-    border-radius: 8px;
-}
 
 .image {
     width: 82px;
