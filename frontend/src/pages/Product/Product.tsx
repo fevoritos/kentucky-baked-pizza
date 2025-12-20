@@ -1,6 +1,6 @@
 import { Await, useLoaderData } from 'react-router-dom';
 import type { IProduct } from '../../interfaces/product.interface';
-import { Suspense, useEffect } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import Headling from '../../components/Headling/Headling';
 import Button from '../../components/Button/Button';
 import styles from './Product.module.css';
@@ -11,6 +11,8 @@ import { fetchOrders } from '../../store/orders.slice';
 import { fetchMyRating, submitRating } from '../../store/feedback.slice';
 import cn from 'classnames';
 import { toast } from 'react-toastify';
+import axios from 'axios';
+import { PREFIX } from '../../helpers/API';
 
 export function Product() {
   const data = useLoaderData() as { data: IProduct };
@@ -21,10 +23,6 @@ export function Product() {
   useEffect(() => {
     dispatch(fetchOrders());
   }, [dispatch]);
-
-  const handleRating = (dishId: number, rating: number) => {
-    dispatch(submitRating({ dishId, rating }));
-  };
 
   return (
     <>
@@ -41,7 +39,6 @@ export function Product() {
                 product={product}
                 hasOrdered={hasOrdered}
                 userRating={userRating}
-                handleRating={handleRating}
                 dispatch={dispatch}
               />
             );
@@ -53,24 +50,38 @@ export function Product() {
 }
 
 function ProductContent({
-  product,
+  product: initialProduct,
   hasOrdered,
   userRating,
-  handleRating,
   dispatch,
 }: {
   product: IProduct;
   hasOrdered: boolean;
   userRating: number | undefined;
-  handleRating: (id: number, rating: number) => void;
   dispatch: AppDispatch;
 }) {
+  const [product, setProduct] = useState<IProduct>(initialProduct);
   const cartLoading = useSelector((s: RootState) => s.cart.loading);
+
+  useEffect(() => {
+    setProduct(initialProduct);
+  }, [initialProduct]);
+
   useEffect(() => {
     if (userRating === undefined && hasOrdered) {
       dispatch(fetchMyRating(product.id));
     }
   }, [dispatch, product.id, userRating, hasOrdered]);
+
+  const handleRatingWithUpdate = async (dishId: number, rating: number) => {
+    try {
+      await dispatch(submitRating({ dishId, rating })).unwrap();
+      const { data } = await axios.get<IProduct>(`${PREFIX}/dishes/${dishId}`);
+      setProduct((prev) => ({ ...prev, rating: data.rating }));
+    } catch (error) {
+      console.error('Failed to submit rating:', error);
+    }
+  };
 
   return (
     <>
@@ -112,7 +123,7 @@ function ProductContent({
                     className={cn(styles['star'], {
                       [styles['active_star']]: (userRating || 0) >= star,
                     })}
-                    onClick={() => handleRating(product.id, star)}
+                    onClick={() => handleRatingWithUpdate(product.id, star)}
                   />
                 ))}
               </div>
