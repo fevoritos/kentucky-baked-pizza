@@ -176,7 +176,7 @@
   color: var(--primary-color);
 }
 
-.loading, .error, .empty {
+.error, .empty {
   text-align: center;
   padding: 40px;
   font-size: 18px;

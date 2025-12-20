@@ -21,7 +21,7 @@ export type LoginForm = {
 export function Login() {
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
-  const { jwt, loginErrorMessage: error } = useSelector((s: RootState) => s.user);
+  const { jwt, loginErrorMessage: error, loginLoading } = useSelector((s: RootState) => s.user);
 
   useEffect(() => {
     if (jwt) {
@@ -54,7 +54,9 @@ export function Login() {
           <label htmlFor="password">Ваш пароль</label>
           <Input id="password" name="password" type="password" placeholder="Пароль"></Input>
         </div>
-        <Button appearance="big">Вход</Button>
+        <Button appearance="big" loading={loginLoading}>
+          Вход
+        </Button>
       </form>
       <div className={styles['links']}>
         <div>Нет аккаунта?</div>

@@ -1,11 +1,12 @@
 import styles from './CartItem.module.css';
-import { useDispatch } from 'react-redux';
-import type { AppDispatch } from '../../store/store';
+import { useDispatch, useSelector } from 'react-redux';
+import type { AppDispatch, RootState } from '../../store/store';
 import { cartActions } from '../../store/cart.slice';
 import type { CartItemProps } from './CartItem.props';
 
 function CartItem(props: CartItemProps) {
   const dispatch = useDispatch<AppDispatch>();
+  const isUpdating = useSelector((s: RootState) => s.cart.updatingItems[props.id] || false);
 
   const increase = () => {
     dispatch(cartActions.updateCartQuantity({ dishId: props.id, quantity: props.count + 1 }));
@@ -28,14 +29,18 @@ function CartItem(props: CartItemProps) {
         <div className={styles['price']}>{props.price}&nbsp;₽</div>
       </div>
       <div className={styles['actions']}>
-        <button className={styles['minus']} onClick={decrease}>
+        <button
+          className={styles['minus']}
+          onClick={decrease}
+          disabled={isUpdating || props.count === 1}
+        >
           <img src="/minus-icon.svg" alt="Удалить из корзины" />
         </button>
         <div className={styles['number']}>{props.count}</div>
-        <button className={styles['plus']} onClick={increase}>
+        <button className={styles['plus']} onClick={increase} disabled={isUpdating}>
           <img src="/plus-icon.svg" alt="Добавить в корзину" />
         </button>
-        <button className={styles['remove']} onClick={remove}>
+        <button className={styles['remove']} onClick={remove} disabled={isUpdating}>
           <img src="/delete-icon.svg" alt="Удалить все" />
         </button>
       </div>

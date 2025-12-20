@@ -65,6 +65,7 @@ function ProductContent({
   handleRating: (id: number, rating: number) => void;
   dispatch: AppDispatch;
 }) {
+  const cartLoading = useSelector((s: RootState) => s.cart.loading);
   useEffect(() => {
     if (userRating === undefined && hasOrdered) {
       dispatch(fetchMyRating(product.id));
@@ -137,6 +138,7 @@ function ProductContent({
               }
             }}
             appearance="small"
+            loading={cartLoading}
           >
             <img src="/cart-button-icon.svg" alt="Иконка корзины" />В корзину
           </Button>

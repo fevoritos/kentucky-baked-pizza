@@ -3,6 +3,7 @@ import type { RootState, AppDispatch } from '../../store/store';
 import CartReceipt from './CartReceipt';
 import Headling from '../../components/Headling/Headling';
 import Button from '../../components/Button/Button';
+import { Loading } from '../../components/Loading/Loading';
 import { useEffect } from 'react';
 import { cartActions } from '../../store/cart.slice';
 import { useNavigate } from 'react-router-dom';
@@ -12,6 +13,7 @@ export function Cart() {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const backendCart = useSelector((s: RootState) => s.cart.backendCart);
+  const cartLoading = useSelector((s: RootState) => s.cart.loading);
   const jwt = useSelector((s: RootState) => s.user.jwt);
 
   useEffect(() => {
@@ -21,6 +23,10 @@ export function Cart() {
   }, [dispatch, jwt]);
 
   const items = backendCart?.items || [];
+
+  if (cartLoading && !backendCart) {
+    return <Loading text="Загрузка корзины..." />;
+  }
 
   return (
     <>

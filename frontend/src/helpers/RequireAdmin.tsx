@@ -3,6 +3,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { Navigate } from 'react-router-dom';
 import { type RootState, type AppDispatch } from '../store/store';
 import { getProfile } from '../store/user.slice';
+import { Loading } from '../components/Loading/Loading';
 
 export const RequireAdmin = ({ children }: { children: ReactNode }) => {
   const { jwt, profile } = useSelector((s: RootState) => s.user);
@@ -23,7 +24,7 @@ export const RequireAdmin = ({ children }: { children: ReactNode }) => {
   }
 
   if (!profile) {
-    return <div>Loading...</div>;
+    return <Loading text="Загрузка профиля..." />;
   }
 
   return children;
