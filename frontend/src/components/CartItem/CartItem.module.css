@@ -5,12 +5,31 @@
     margin-bottom: 27px;
 }
 
+.clickable-area {
+    display: flex;
+    gap: 20px;
+    flex: 1;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.clickable-area:hover {
+    opacity: 0.8;
+}
+
+.clickable-area:focus {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+    border-radius: 8px;
+}
+
 .image {
     width: 82px;
     height: 82px;
     background-size: cover;
     box-shadow: 0 8px 25px 0 rgba(224, 219, 196, 0.9);
     border-radius: 20px;
+    flex-shrink: 0;
 }
 
 .actions {
@@ -115,6 +134,10 @@
         gap: 15px;
         margin-bottom: 20px;
         max-width: 100%;
+    }
+
+    .clickable-area {
+        gap: 15px;
     }
 
     .image {
