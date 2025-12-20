@@ -50,7 +50,7 @@ export function AdminAssortment() {
       await axios.delete(`${PREFIX}/dishes/${id}`, {
         headers: { Authorization: `Bearer ${jwt}` },
       });
-      getProducts();
+      setProducts((prevProducts) => prevProducts.filter((p) => p.id !== id));
     } catch (e) {
       console.error(e);
     }
@@ -83,16 +83,23 @@ export function AdminAssortment() {
       };
 
       if (currentProduct.id) {
-        await axios.put(`${PREFIX}/dishes/${currentProduct.id}`, payload, {
-          headers: { Authorization: `Bearer ${jwt}` },
-        });
+        const { data } = await axios.put<IProduct>(
+          `${PREFIX}/dishes/${currentProduct.id}`,
+          payload,
+          {
+            headers: { Authorization: `Bearer ${jwt}` },
+          },
+        );
+        setProducts((prevProducts) =>
+          prevProducts.map((p) => (p.id === currentProduct.id ? data : p)),
+        );
       } else {
-        await axios.post(`${PREFIX}/dishes`, payload, {
+        const { data } = await axios.post<IProduct>(`${PREFIX}/dishes`, payload, {
           headers: { Authorization: `Bearer ${jwt}` },
         });
+        setProducts((prevProducts) => [...prevProducts, data]);
       }
       setIsEditing(false);
-      getProducts();
     } catch (e) {
       console.error(e);
     } finally {
