@@ -41,6 +41,7 @@ const STATUSES = [
 export function AdminOrders() {
   const [orders, setOrders] = useState<IOrder[]>([]);
   const [isLoading, setIsloading] = useState<boolean>(false);
+  const [updatingOrders, setUpdatingOrders] = useState<Set<number>>(new Set());
   const jwt = useSelector((s: RootState) => s.user.jwt);
 
   const getOrders = useCallback(async () => {
@@ -62,6 +63,7 @@ export function AdminOrders() {
   }, [getOrders]);
 
   const handleStatusChange = async (orderId: number, statusId: number) => {
+    setUpdatingOrders((prev) => new Set(prev).add(orderId));
     try {
       await axios.put(
         `${PREFIX}/orders/${orderId}/status`,
@@ -70,9 +72,17 @@ export function AdminOrders() {
           headers: { Authorization: `Bearer ${jwt}` },
         },
       );
-      getOrders();
+      setOrders((prevOrders) =>
+        prevOrders.map((order) => (order.id === orderId ? { ...order, status: statusId } : order)),
+      );
     } catch (e) {
       console.error(e);
+    } finally {
+      setUpdatingOrders((prev) => {
+        const next = new Set(prev);
+        next.delete(orderId);
+        return next;
+      });
     }
   };
 
@@ -118,17 +128,23 @@ export function AdminOrders() {
                     </td>
                     <td>{formatDateTime(order.createdAt)}</td>
                     <td>
-                      <select
-                        value={order.status}
-                        onChange={(e) => handleStatusChange(order.id, Number(e.target.value))}
-                        className={styles['select']}
-                      >
-                        {STATUSES.map((s) => (
-                          <option key={s.id} value={s.id}>
-                            {s.name}
-                          </option>
-                        ))}
-                      </select>
+                      <div className={styles['select-wrapper']}>
+                        <select
+                          value={order.status}
+                          onChange={(e) => handleStatusChange(order.id, Number(e.target.value))}
+                          className={`${styles['select']} ${updatingOrders.has(order.id) ? styles['select-updating'] : ''}`}
+                          disabled={updatingOrders.has(order.id)}
+                        >
+                          {STATUSES.map((s) => (
+                            <option key={s.id} value={s.id}>
+                              {s.name}
+                            </option>
+                          ))}
+                        </select>
+                        {updatingOrders.has(order.id) && (
+                          <span className={styles['spinner']}></span>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -139,17 +155,21 @@ export function AdminOrders() {
                 <div key={order.id} className={styles['mobile-card']}>
                   <div className={styles['card-header']}>
                     <div className={styles['card-id']}>Заказ №{order.id}</div>
-                    <select
-                      value={order.status}
-                      onChange={(e) => handleStatusChange(order.id, Number(e.target.value))}
-                      className={styles['select']}
-                    >
-                      {STATUSES.map((s) => (
-                        <option key={s.id} value={s.id}>
-                          {s.name}
-                        </option>
-                      ))}
-                    </select>
+                    <div className={styles['select-wrapper']}>
+                      <select
+                        value={order.status}
+                        onChange={(e) => handleStatusChange(order.id, Number(e.target.value))}
+                        className={`${styles['select']} ${updatingOrders.has(order.id) ? styles['select-updating'] : ''}`}
+                        disabled={updatingOrders.has(order.id)}
+                      >
+                        {STATUSES.map((s) => (
+                          <option key={s.id} value={s.id}>
+                            {s.name}
+                          </option>
+                        ))}
+                      </select>
+                      {updatingOrders.has(order.id) && <span className={styles['spinner']}></span>}
+                    </div>
                   </div>
                   <div className={styles['card-section']}>
                     <div className={styles['card-label']}>Клиент</div>
