@@ -1,4 +1,4 @@
-import type { ICartItem } from '../../store/cart.slice';
+import type { ICartItem } from '../../interfaces/cart.interface';
 
 export interface CartReceiptProps {
   items: ICartItem[];

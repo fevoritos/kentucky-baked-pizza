@@ -3,19 +3,23 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Copy package files
-COPY package.json pnpm-lock.yaml ./
+# Copy workspace files
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+
+# Copy backend package.json
+COPY backend/package.json ./backend/
 
 # Install pnpm
 RUN npm install -g pnpm
 
-# Install dependencies
-RUN pnpm install --frozen-lockfile
+# Install dependencies for backend only
+RUN pnpm install --frozen-lockfile --filter backend
 
-# Copy source code
-COPY . .
+# Copy backend source code
+COPY backend/ ./backend/
 
 # Build the application
+WORKDIR /app/backend
 RUN pnpm build
 
 # Production stage
@@ -26,18 +30,28 @@ WORKDIR /app
 # Install pnpm
 RUN npm install -g pnpm
 
-# Copy package files
-COPY package.json pnpm-lock.yaml ./
+# Copy workspace files
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 
-# Install only production dependencies
-RUN pnpm install --prod --frozen-lockfile
+# Copy backend package.json
+COPY backend/package.json ./backend/
 
-# Copy built application from builder
-COPY --from=builder /app/dist ./dist
+# Install only production dependencies for backend
+# This will create node_modules in /app/node_modules (pnpm workspace structure)
+RUN pnpm install --prod --frozen-lockfile --filter backend
+
+# Copy built application from builder to backend/dist
+COPY --from=builder /app/backend/dist ./backend/dist
+
+# Set NODE_PATH to help Node.js find modules in workspace root
+ENV NODE_PATH=/app/node_modules
+
+# Change working directory to backend
+WORKDIR /app/backend
 
 # Expose port
 EXPOSE 3000
 
-# Start the application
+# Start the application (node_modules is in /app/node_modules, accessible via NODE_PATH)
 CMD ["node", "dist/main.js"]
 

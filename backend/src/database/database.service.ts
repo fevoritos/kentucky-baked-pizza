@@ -14,7 +14,8 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
       database: process.env.DB_NAME || 'kentucky_baked_pizza',
       user: process.env.DB_USER || 'postgres',
       password: process.env.DB_PASSWORD || 'postgres',
-      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+      // Disable SSL for local Docker PostgreSQL, enable only if DB_SSL env var is set
+      ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
     };
 
     this.pool = new Pool(config);
