@@ -9,13 +9,28 @@ async function bootstrap() {
   // Set global prefix for all routes
   app.setGlobalPrefix('api');
 
+  // CORS configuration - allow localhost for development and Railway domains for production
+  const allowedOrigins: (string | RegExp | ((origin: string) => boolean))[] = [
+    'http://localhost:5173',
+    'http://localhost:3000',
+    'http://localhost:80',
+    'http://localhost',
+  ];
+
+  // Add Railway frontend domain if provided
+  if (process.env.FRONTEND_URL) {
+    allowedOrigins.push(process.env.FRONTEND_URL);
+  }
+
+  // Allow all Railway domains in production
+  if (process.env.NODE_ENV === 'production') {
+    allowedOrigins.push(
+      (origin: string) => origin.startsWith('https://') && origin.includes('.up.railway.app'),
+    );
+  }
+
   app.enableCors({
-    origin: [
-      'http://localhost:5173',
-      'http://localhost:3000',
-      'http://localhost:80',
-      'http://localhost',
-    ],
+    origin: allowedOrigins,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
